@@ -50,6 +50,9 @@ lint:
 # Dependencies
 
 deps:
+	go get -u github.com/jteeuwen/go-bindata/...
+	go get -u github.com/gorilla/websocket
+	go get -u github.com/docker/docker/client
 
 dev-deps:
 	go get -u github.com/alecthomas/gometalinter
