@@ -20,7 +20,7 @@ type ConcurrentScanner struct {
 
 // NewConcurrentScanner starts scanning each reader in a separate goroutine
 // and returns a *ConcurrentScanner.
-func NewConcurrentScanner(readers ...io.Reader) *ConcurrentScanner {
+func NewConcurrentScanner(readers []io.Reader) *ConcurrentScanner {
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &ConcurrentScanner{
 		scans:  make(chan []byte),
