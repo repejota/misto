@@ -17,6 +17,7 @@ func main() {
 	http.Handle("/logs", routes.HandleConnections(hub))
 	log.Println("listening on: http://localhost:5551")
 	go http.ListenAndServe(":5551", nil)
+
 	go hub.HandleMessages()
 	hub.HandleProducers()
 }
