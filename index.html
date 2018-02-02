@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <style type="text/css">
     .console {
-      font-size: 0.8em;
+      font-size: 0.7em;
     }
     ul.logs li {
-      border-bottom: 1px solid #ecf0f1;
-      padding: 5px;
+      padding: 2px;
     }
     </style>
     <title>Hello, world!</title>
@@ -45,7 +44,7 @@
     $(function() {
       socket = new WebSocket("ws://localhost:5551/logs");
       socket.onmessage = function (event) {
-        console.log(event);
+        console.log(event)
         //$('.logs').prepend("<li>"+event.data+"</li>");
       }
     });

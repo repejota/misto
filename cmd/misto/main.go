@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html"
 	"html/template"
 	"io"
 	"log"
@@ -11,6 +12,8 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
 	"github.com/repejota/misto"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 var clients = make(map[*websocket.Conn]bool) // connected clients
@@ -18,6 +21,8 @@ var broadcast = make(chan Message)           // broadcast channel
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -28,6 +33,23 @@ type Message struct {
 	Message string
 }
 
+// Advanced Unicode normalization and filtering,
+// see http://blog.golang.org/normalization and
+// http://godoc.org/golang.org/x/text/unicode/norm for more
+// details.
+func stripCtlAndExtFromUnicode(str string) string {
+	isOk := func(r rune) bool {
+		return r < 32 || r >= 127
+	}
+	// The isOk filter is such that there is no need to chain to norm.NFC
+	t := transform.Chain(norm.NFKD, transform.RemoveFunc(isOk))
+	// This Transformer could also trivially be applied as an io.Reader
+	// or io.Writer filter to automatically do such filtering when reading
+	// or writing data anywhere.
+	str, _, _ = transform.String(t, str)
+	return str
+}
+
 func handleProducers() {
 	cli, err := client.NewEnvClient()
 	if err != nil {
@@ -36,17 +58,21 @@ func handleProducers() {
 
 	readers := []io.Reader{}
 
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	options := types.ContainerListOptions{}
+	containers, err := cli.ContainerList(context.Background(), options)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, container := range containers {
-		responseBody, err := cli.ContainerLogs(context.Background(), container.ID, types.ContainerLogsOptions{
+		options := types.ContainerLogsOptions{
 			ShowStdout: true,
 			ShowStderr: true,
 			Follow:     true,
-		})
+			Timestamps: false,
+			Details:    false,
+		}
+		responseBody, err := cli.ContainerLogs(context.Background(), container.ID, options)
 		defer responseBody.Close()
 
 		if err != nil {
@@ -63,9 +89,9 @@ func handleProducers() {
 
 	scanner := misto.NewConcurrentScanner(readers...)
 	for scanner.Scan() {
-		msg := scanner.Text()
-
-		err := c.WriteMessage(websocket.TextMessage, []byte(msg))
+		msg := stripCtlAndExtFromUnicode(html.EscapeString(scanner.Text()))
+		log.Println(">>>>>>>>", msg)
+		err := c.WriteMessage(websocket.TextMessage, []byte("fooo"))
 		if err != nil {
 			log.Println("write:", err)
 			return
@@ -115,6 +141,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		}
 		var msg Message
 		msg.Message = string(msgStr)
+
 		// Send the newly received message to the broadcast channel
 		broadcast <- msg
 	}
@@ -126,6 +153,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.SetFlags(0)
 	go handleMessages()
 
 	http.HandleFunc("/", handleHome)
