@@ -12,38 +12,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
 	"github.com/repejota/misto"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/unicode/norm"
 )
-
-var clients = make(map[*websocket.Conn]bool) // connected clients
-var broadcast = make(chan misto.Message)     // broadcast channel
-
-// Configure the upgrader
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-// Advanced Unicode normalization and filtering,
-// see http://blog.golang.org/normalization and
-// http://godoc.org/golang.org/x/text/unicode/norm for more
-// details.
-func stripCtlAndExtFromUnicode(str string) string {
-	isOk := func(r rune) bool {
-		return r < 32 || r >= 127
-	}
-	// The isOk filter is such that there is no need to chain to norm.NFC
-	t := transform.Chain(norm.NFKD, transform.RemoveFunc(isOk))
-	// This Transformer could also trivially be applied as an io.Reader
-	// or io.Writer filter to automatically do such filtering when reading
-	// or writing data anywhere.
-	str, _, _ = transform.String(t, str)
-	return str
-}
 
 func handleProducers(hub *misto.Hub) {
 	cli, err := client.NewEnvClient()
@@ -78,7 +47,7 @@ func handleProducers(hub *misto.Hub) {
 
 	scanner := misto.NewConcurrentScanner(readers...)
 	for scanner.Scan() {
-		msg := stripCtlAndExtFromUnicode(html.EscapeString(scanner.Text()))
+		msg := misto.StripCtlAndExtFromUnicode(html.EscapeString(scanner.Text()))
 		message := &misto.Message{
 			Content: msg,
 		}
@@ -90,7 +59,17 @@ func handleProducers(hub *misto.Hub) {
 }
 
 func handleConnections(hub *misto.Hub) http.Handler {
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		// Configure the upgrader
+		var upgrader = websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+
 		// Upgrade initial GET request to a websocket
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -115,7 +94,7 @@ func handleConnections(hub *misto.Hub) http.Handler {
 			msg.Content = string(msgStr)
 
 			// Send the newly received message to the broadcast channel
-			broadcast <- msg
+			hub.Broadcast <- msg
 		}
 	}
 	return http.HandlerFunc(fn)
