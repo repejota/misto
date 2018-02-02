@@ -12,45 +12,9 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
 	"github.com/repejota/misto"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/unicode/norm"
 )
 
-var clients = make(map[*websocket.Conn]bool) // connected clients
-var broadcast = make(chan Message)           // broadcast channel
-
-// Configure the upgrader
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-// Message define our message object
-type Message struct {
-	Message string
-}
-
-// Advanced Unicode normalization and filtering,
-// see http://blog.golang.org/normalization and
-// http://godoc.org/golang.org/x/text/unicode/norm for more
-// details.
-func stripCtlAndExtFromUnicode(str string) string {
-	isOk := func(r rune) bool {
-		return r < 32 || r >= 127
-	}
-	// The isOk filter is such that there is no need to chain to norm.NFC
-	t := transform.Chain(norm.NFKD, transform.RemoveFunc(isOk))
-	// This Transformer could also trivially be applied as an io.Reader
-	// or io.Writer filter to automatically do such filtering when reading
-	// or writing data anywhere.
-	str, _, _ = transform.String(t, str)
-	return str
-}
-
-func handleProducers() {
+func handleProducers(hub *misto.Hub) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -81,70 +45,59 @@ func handleProducers() {
 		readers = append(readers, responseBody)
 	}
 
-	c, _, err := websocket.DefaultDialer.Dial("ws://localhost:5551/logs", nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer c.Close()
-
 	scanner := misto.NewConcurrentScanner(readers...)
 	for scanner.Scan() {
-		msg := stripCtlAndExtFromUnicode(html.EscapeString(scanner.Text()))
-		log.Println(">>>>>>>>", msg)
-		err := c.WriteMessage(websocket.TextMessage, []byte("fooo"))
-		if err != nil {
-			log.Println("write:", err)
-			return
+		msg := misto.StripCtlAndExtFromUnicode(html.EscapeString(scanner.Text()))
+		message := &misto.Message{
+			Content: msg,
 		}
+		hub.Broadcast <- *message
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func handleMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-broadcast
-		// Send it out to every client that is currently connected
-		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, []byte(msg.Message))
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
-			}
+func handleConnections(hub *misto.Hub) http.Handler {
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// Configure the upgrader
+		var upgrader = websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
 		}
-	}
-}
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	// Upgrade initial GET request to a websocket
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Make sure we close the connection when the function returns
-	defer ws.Close()
-
-	// Register our new client
-	clients[ws] = true
-
-	for {
-		// Read in a new message
-		_, msgStr, err := ws.ReadMessage()
-		// Read in a new message as JSON and map it to a Message object
+		// Upgrade initial GET request to a websocket
+		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			// log.Printf("error: %v", err)
-			delete(clients, ws)
-			break
+			log.Fatal(err)
 		}
-		var msg Message
-		msg.Message = string(msgStr)
+		// Make sure we close the connection when the function returns
+		defer ws.Close()
 
-		// Send the newly received message to the broadcast channel
-		broadcast <- msg
+		// Register our new client
+		hub.Clients[ws] = true
+
+		for {
+			// Read in a new message
+			_, msgStr, err := ws.ReadMessage()
+			// Read in a new message as JSON and map it to a Message object
+			if err != nil {
+				// log.Printf("error: %v", err)
+				delete(hub.Clients, ws)
+				break
+			}
+			var msg misto.Message
+			msg.Content = string(msgStr)
+
+			// Send the newly received message to the broadcast channel
+			hub.Broadcast <- msg
+		}
 	}
+	return http.HandlerFunc(fn)
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
@@ -154,12 +107,15 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.SetFlags(0)
-	go handleMessages()
+
+	hub := misto.NewHub()
+
+	go hub.HandleMessages()
 
 	http.HandleFunc("/", handleHome)
-	http.HandleFunc("/logs", handleConnections)
+	http.Handle("/logs", handleConnections(hub))
 	log.Println("listening on: http://localhost:5551")
 	go http.ListenAndServe(":5551", nil)
 
-	handleProducers()
+	handleProducers(hub)
 }
