@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/repejota/misto"
+	"github.com/repejota/misto/routes"
 )
 
 func main() {
@@ -12,12 +13,10 @@ func main() {
 
 	hub := misto.NewHub()
 
-	http.HandleFunc("/", misto.HandleHome)
-	http.Handle("/logs", misto.HandleConnections(hub))
+	http.HandleFunc("/", routes.HandleHome)
+	http.Handle("/logs", routes.HandleConnections(hub))
 	log.Println("listening on: http://localhost:5551")
 	go http.ListenAndServe(":5551", nil)
-
 	go hub.HandleMessages()
-
 	hub.HandleProducers()
 }
