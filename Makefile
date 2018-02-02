@@ -38,6 +38,10 @@ cover: cover-profile
 cover-html: cover-profile
 	go tool cover -html=coverage-all.out
 
+.PHONY: coveralls
+coveralls:
+	goveralls -repotoken 9EmpV6j34d3itxKKXJCjTYicQPZhgzwj3
+
 # Lint
 
 lint:
