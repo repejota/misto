@@ -1,20 +1,15 @@
-package misto
+package routes
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/repejota/misto"
 )
 
-func HandleHome(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("index.html")
-	t.Execute(w, nil)
-}
-
 // HandleConnections ...
-func HandleConnections(hub *Hub) http.Handler {
+func HandleConnections(hub *misto.Hub) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		// Configure the upgrader
 		var upgrader = websocket.Upgrader{
@@ -45,7 +40,7 @@ func HandleConnections(hub *Hub) http.Handler {
 				delete(hub.Clients, ws)
 				break
 			}
-			var msg Message
+			var msg misto.Message
 			msg.Content = string(msgStr)
 
 			// Send the newly received message to the broadcast channel
