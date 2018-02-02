@@ -44,8 +44,7 @@
     $(function() {
       socket = new WebSocket("ws://localhost:5551/logs");
       socket.onmessage = function (event) {
-        console.log(event)
-        //$('.logs').prepend("<li>"+event.data+"</li>");
+        $('.logs').prepend("<li>"+event.data+"</li>");
       }
     });
     </script>
