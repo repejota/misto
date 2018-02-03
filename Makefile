@@ -10,6 +10,7 @@ LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
 # Build & Install
 
 install:
+	go-bindata -o assets.go -pkg $(BINARY) assets/...
 	go install $(LDFLAGS) -v $(PACKAGES)
 
 .PHONY: version
