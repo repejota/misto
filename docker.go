@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -36,9 +37,21 @@ func (dc *DockerClient) ContainerList() ([]types.Container, error) {
 	return containers, nil
 }
 
-// Events ...
-func (dc *DockerClient) Events() (<-chan events.Message, <-chan error) {
+// MonitgorStartStopContainerEvents ...
+func (dc *DockerClient) MonitgorStartStopContainerEvents() (<-chan events.Message, <-chan error) {
 	ctx := context.Background()
-	options := types.EventsOptions{}
+	f := filters.NewArgs()
+	f.Add("type", "container")
+	f.Add("event", "start")
+	f.Add("event", "stop")
+	options := types.EventsOptions{
+		Filters: f,
+	}
 	return dc.Cli.Events(ctx, options)
+}
+
+// ShortID ...
+func (dc *DockerClient) ShortID(longID string) string {
+	shortID := longID[:12]
+	return shortID
 }

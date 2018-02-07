@@ -20,13 +20,12 @@ var (
 
 // showVersion ...
 func showVersion() string {
-	versionInfo := fmt.Sprintf("misto : Version %s Build %s", Version, Build)
+	versionInfo := fmt.Sprintf("misto : Version %s Build %s\n", Version, Build)
 	return versionInfo
 }
 
 func main() {
 	log.SetFlags(0)
-	log.SetPrefix("misto: ")
 
 	var (
 		versionFlag = flag.Bool("version", false, "Show version information.")
@@ -47,6 +46,6 @@ func main() {
 	}
 
 	hub := misto.NewHub()
-	fmt.Printf("Starting misto %s ...\n", Version)
+	log.Printf("Starting misto %s ...\n", Version)
 	hub.Run()
 }
