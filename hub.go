@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/fatih/color"
 )
 
 // Hub ...
@@ -43,7 +44,8 @@ func (h *Hub) build() error {
 	for _, container := range containers {
 		h.Producers = append(h.Producers, container)
 		shortID := h.dc.ShortID(container.ID)
-		log.Printf("Append producer: id=%s name=%s\n", shortID, strings.Join(container.Names, ","))
+		green := color.New(color.FgGreen).SprintFunc()
+		log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
 	}
 	return nil
 }
@@ -59,9 +61,11 @@ func (h *Hub) monitor() {
 			shortID := h.dc.ShortID(event.Actor.ID)
 			switch event.Action {
 			case "start":
-				log.Printf("Append producer: id=%s name=%s\n", shortID, event.Actor.Attributes["name"])
+				green := color.New(color.FgGreen).SprintFunc()
+				log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			case "stop":
-				log.Printf("Remove producer: id=%s name=%s\n", shortID, event.Actor.Attributes["name"])
+				red := color.New(color.FgRed).SprintFunc()
+				log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			}
 		}
 	}
