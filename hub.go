@@ -4,14 +4,17 @@ import (
 	"log"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	"github.com/fatih/color"
 )
 
 // Hub ...
 type Hub struct {
-	dc        *DockerClient
-	Producers []types.Container
+	dc *DockerClient
+
+	// TODO:
+	// Better be a set as removing from an slice is O(n) and we want O(1)
+	// https://stackoverflow.com/a/31080520
+	Producers []string
 }
 
 // NewHub ...
@@ -42,7 +45,7 @@ func (h *Hub) build() error {
 		return err
 	}
 	for _, container := range containers {
-		h.Producers = append(h.Producers, container)
+		h.Producers = append(h.Producers, container.ID)
 		shortID := h.dc.ShortID(container.ID)
 		green := color.New(color.FgGreen).SprintFunc()
 		log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
@@ -58,12 +61,21 @@ func (h *Hub) monitor() {
 		case err := <-cerrs:
 			log.Println("ERROR:", err)
 		case event := <-cevents:
-			shortID := h.dc.ShortID(event.Actor.ID)
+			containerID := event.Actor.ID
+			shortID := h.dc.ShortID(containerID)
 			switch event.Action {
 			case "start":
+				// append container/producer on the hub
+				h.Producers = append(h.Producers, containerID)
 				green := color.New(color.FgGreen).SprintFunc()
 				log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			case "stop":
+				// remove container/producer from the hub
+				for k, v := range h.Producers {
+					if containerID == v {
+						h.Producers = append(h.Producers[:k], h.Producers[k+1:]...)
+					}
+				}
 				red := color.New(color.FgRed).SprintFunc()
 				log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			}
