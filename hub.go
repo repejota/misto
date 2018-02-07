@@ -9,6 +9,7 @@ import (
 
 // Hub ...
 type Hub struct {
+	dc        *DockerClient
 	Producers []types.Container
 }
 
@@ -20,34 +21,47 @@ func NewHub() *Hub {
 
 // Run ...
 func (h *Hub) Run() {
-	// Get docker client
 	dc, err := NewDockerClient()
 	if err != nil {
 		log.Fatal(err)
 	}
+	h.dc = dc
 
-	// Get current containers
-	containers, err := dc.ContainerList()
+	err = h.build()
 	if err != nil {
 		log.Fatal(err)
 	}
+	h.monitor()
+}
+
+// build ...
+func (h *Hub) build() error {
+	containers, err := h.dc.ContainerList()
+	if err != nil {
+		return err
+	}
 	for _, container := range containers {
 		h.Producers = append(h.Producers, container)
-		log.Printf("Append producer: id=%s name=%s\n", container.ID[:12], strings.Join(container.Names, ","))
+		shortID := h.dc.ShortID(container.ID)
+		log.Printf("Append producer: id=%s name=%s\n", shortID, strings.Join(container.Names, ","))
 	}
+	return nil
+}
 
-	// Monitor start & stop containers
-	cevents, cerrs := dc.MonitgorStartStopContainerEvents()
+// monitor ...
+func (h *Hub) monitor() {
+	cevents, cerrs := h.dc.MonitgorStartStopContainerEvents()
 	for {
 		select {
 		case err := <-cerrs:
-			log.Fatal(err)
+			log.Println("ERROR:", err)
 		case event := <-cevents:
+			shortID := h.dc.ShortID(event.Actor.ID)
 			switch event.Action {
 			case "start":
-				log.Printf("Append producer: id=%s name=%s\n", event.Actor.ID[:12], event.Actor.Attributes["name"])
+				log.Printf("Append producer: id=%s name=%s\n", shortID, event.Actor.Attributes["name"])
 			case "stop":
-				log.Printf("Remove producer: id=%s name=%s\n", event.Actor.ID[:12], event.Actor.Attributes["name"])
+				log.Printf("Remove producer: id=%s name=%s\n", shortID, event.Actor.Attributes["name"])
 			}
 		}
 	}
