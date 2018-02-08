@@ -50,20 +50,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = hub.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	readers := hub.ProducersReaders()
-	scanner := misto.NewConcurrentScanner(readers)
-	for scanner.Scan() {
-		msg := scanner.Text()
-		log.Printf("%+s", msg)
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("fooooooo")
+	hub.Run()
 }

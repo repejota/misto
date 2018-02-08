@@ -56,13 +56,13 @@ func (h *Hub) RemoveProducer(id string) {
 }
 
 // Run ...
-func (h *Hub) Run() error {
+func (h *Hub) Run() {
 	err := h.build()
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 	go h.monitor()
-	return nil
+	h.handleProducers()
 }
 
 // build ...
@@ -111,4 +111,18 @@ func (h *Hub) monitor() {
 			}
 		}
 	}
+}
+
+// handleProducers ...
+func (h *Hub) handleProducers() error {
+	readers := h.ProducersReaders()
+	scanner := NewConcurrentScanner(readers)
+	for scanner.Scan() {
+		msg := scanner.Text()
+		log.Printf("%s", msg)
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	return nil
 }
