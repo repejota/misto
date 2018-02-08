@@ -2,6 +2,7 @@ package misto
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/docker/docker/api/types"
@@ -33,7 +34,7 @@ func (dc *DockerClient) ContainerList() ([]types.Container, error) {
 	options := types.ContainerListOptions{}
 	containers, err := dc.cli.ContainerList(ctx, options)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get a list of containers %v", err)
 	}
 	return containers, nil
 }
@@ -50,7 +51,7 @@ func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, er
 	}
 	reader, err := dc.cli.ContainerLogs(ctx, id, options)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get container logs %v", err)
 	}
 	defer reader.Close()
 	return reader, nil

@@ -45,17 +45,19 @@ func main() {
 		os.Exit(0)
 	}
 
-	hub := misto.NewHub()
-
-	log.Printf("Starting misto %s ...\n", Version)
-
-	err := hub.Run()
+	hub, err := misto.NewHub()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Infinite loop
-	for {
+	log.Printf("Starting misto %s ...\n", Version)
 
+	err = hub.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		// Infinite loop
 	}
 }

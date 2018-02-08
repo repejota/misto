@@ -1,6 +1,7 @@
 package misto
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -19,23 +20,26 @@ type Hub struct {
 }
 
 // NewHub ...
-func NewHub() *Hub {
-	hub := &Hub{}
-	return hub
+func NewHub() (*Hub, error) {
+	client, err := NewDockerClient()
+	if err != nil {
+		return nil, fmt.Errorf("can't create a hub %v", err)
+	}
+	hub := &Hub{
+		dc: client,
+	}
+	return hub, nil
 }
 
 // Run ...
 func (h *Hub) Run() error {
-	dc, err := NewDockerClient()
+	err := h.build()
 	if err != nil {
 		return err
 	}
-	h.dc = dc
-	err = h.build()
-	if err != nil {
-		return err
-	}
+
 	go h.monitor()
+
 	return nil
 }
 
