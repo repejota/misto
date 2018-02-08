@@ -5,11 +5,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/repejota/misto"
 )
 
@@ -52,24 +50,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("Starting misto %s ...\n", Version)
-
 	err = hub.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	readers := make([]io.Reader, 0, len(hub.Producers))
-	for _, reader := range hub.Producers {
-		readers = append(readers, reader)
-	}
+	readers := hub.ProducersReaders()
 	scanner := misto.NewConcurrentScanner(readers)
 	for scanner.Scan() {
 		msg := scanner.Text()
-		yellow := color.New(color.FgYellow).SprintFunc()
-		log.Printf(yellow("%s"), msg)
+		log.Printf("%+s", msg)
 	}
 	if err := scanner.Err(); err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
+
+	fmt.Println("fooooooo")
 }

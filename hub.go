@@ -31,6 +31,15 @@ func NewHub() (*Hub, error) {
 	return hub, nil
 }
 
+// ProducersReaders ...
+func (h *Hub) ProducersReaders() []io.Reader {
+	readers := make([]io.Reader, 0, len(h.Producers))
+	for _, reader := range h.Producers {
+		readers = append(readers, reader)
+	}
+	return readers
+}
+
 // AppendProducer ...
 func (h *Hub) AppendProducer(id string) {
 	reader, err := h.dc.ContainerLogs(id, true)

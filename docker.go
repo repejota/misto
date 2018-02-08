@@ -47,7 +47,6 @@ func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, er
 		ShowStderr: true,
 		Follow:     follow,
 		Timestamps: false,
-		Details:    false,
 	}
 	reader, err := dc.cli.ContainerLogs(ctx, id, options)
 	if err != nil {
