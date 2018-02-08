@@ -67,17 +67,18 @@ func (h *Hub) monitor() {
 		case event := <-cevents:
 			containerID := event.Actor.ID
 			shortID := h.dc.ShortID(containerID)
+			containerName := event.Actor.Attributes["name"]
 			switch event.Action {
 			case "start":
 				// append container/producer on the hub
 				h.Producers[containerID] = containerID
 				green := color.New(color.FgGreen).SprintFunc()
-				log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				log.Printf(green("Append producer: id=%s name=%s"), shortID, containerName)
 			case "stop":
 				// remove container/producer from the hub
 				delete(h.Producers, containerID)
 				red := color.New(color.FgRed).SprintFunc()
-				log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				log.Printf(red("Remove producer: id=%s name=%s"), shortID, containerName)
 			}
 		}
 	}
