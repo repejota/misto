@@ -52,6 +52,7 @@ lint:
 deps:
 	go get -u github.com/docker/docker/client
 	go get -u github.com/fatih/color
+	go get -u github.com/spf13/cobra
 
 dev-deps:
 	go get -u github.com/alecthomas/gometalinter
