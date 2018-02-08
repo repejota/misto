@@ -86,7 +86,7 @@ func (h *Hub) monitor() {
 				green := color.New(color.FgGreen).SprintFunc()
 				log.Printf(green("Append producer: id=%s name=%s"), shortID, containerName)
 			case "stop":
-				// remove and close container/producer from the hub
+				// remove container/producer from the hub and close its reader
 				h.Producers[containerID].Close()
 				delete(h.Producers, containerID)
 				red := color.New(color.FgRed).SprintFunc()
