@@ -53,7 +53,6 @@ func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, er
 	if err != nil {
 		return nil, fmt.Errorf("can't get container logs %v", err)
 	}
-	defer reader.Close()
 	return reader, nil
 }
 

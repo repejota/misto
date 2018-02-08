@@ -1,3 +1,5 @@
+// Copyright 2018 The misto Authors. All rights reserved.
+
 package misto
 
 import (
