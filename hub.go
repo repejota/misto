@@ -2,9 +2,6 @@ package misto
 
 import (
 	"log"
-	"strings"
-
-	"github.com/fatih/color"
 )
 
 // Hub ...
@@ -46,9 +43,9 @@ func (h *Hub) build() error {
 	}
 	for _, container := range containers {
 		h.Producers = append(h.Producers, container.ID)
-		shortID := h.dc.ShortID(container.ID)
-		green := color.New(color.FgGreen).SprintFunc()
-		log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
+		// shortID := h.dc.ShortID(container.ID)
+		// green := color.New(color.FgGreen).SprintFunc()
+		// log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
 	}
 	return nil
 }
@@ -62,13 +59,13 @@ func (h *Hub) monitor() {
 			log.Println("ERROR:", err)
 		case event := <-cevents:
 			containerID := event.Actor.ID
-			shortID := h.dc.ShortID(containerID)
+			// shortID := h.dc.ShortID(containerID)
 			switch event.Action {
 			case "start":
 				// append container/producer on the hub
 				h.Producers = append(h.Producers, containerID)
-				green := color.New(color.FgGreen).SprintFunc()
-				log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				// green := color.New(color.FgGreen).SprintFunc()
+				// log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			case "stop":
 				// remove container/producer from the hub
 				for k, v := range h.Producers {
@@ -76,8 +73,8 @@ func (h *Hub) monitor() {
 						h.Producers = append(h.Producers[:k], h.Producers[k+1:]...)
 					}
 				}
-				red := color.New(color.FgRed).SprintFunc()
-				log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				// red := color.New(color.FgRed).SprintFunc()
+				// log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			}
 		}
 	}

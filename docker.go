@@ -2,6 +2,7 @@ package misto
 
 import (
 	"context"
+	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
@@ -11,7 +12,7 @@ import (
 
 // DockerClient ...
 type DockerClient struct {
-	Cli *client.Client
+	cli *client.Client
 }
 
 // NewDockerClient ...
@@ -22,7 +23,7 @@ func NewDockerClient() (*DockerClient, error) {
 	if err != nil {
 		return dc, err
 	}
-	dc.Cli = cli
+	dc.cli = cli
 	return dc, nil
 }
 
@@ -30,11 +31,29 @@ func NewDockerClient() (*DockerClient, error) {
 func (dc *DockerClient) ContainerList() ([]types.Container, error) {
 	ctx := context.Background()
 	options := types.ContainerListOptions{}
-	containers, err := dc.Cli.ContainerList(ctx, options)
+	containers, err := dc.cli.ContainerList(ctx, options)
 	if err != nil {
 		return nil, err
 	}
 	return containers, nil
+}
+
+// ContainerLogs ...
+func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, error) {
+	ctx := context.Background()
+	options := types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     follow,
+		Timestamps: false,
+		Details:    false,
+	}
+	reader, err := dc.cli.ContainerLogs(ctx, id, options)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+	return reader, nil
 }
 
 // MonitgorStartStopContainerEvents ...
@@ -47,7 +66,7 @@ func (dc *DockerClient) MonitgorStartStopContainerEvents() (<-chan events.Messag
 	options := types.EventsOptions{
 		Filters: f,
 	}
-	return dc.Cli.Events(ctx, options)
+	return dc.cli.Events(ctx, options)
 }
 
 // ShortID ...
