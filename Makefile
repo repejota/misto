@@ -50,6 +50,8 @@ lint:
 # Dependencies
 
 deps:
+	go get -u github.com/docker/docker/client
+	go get -u github.com/fatih/color
 
 dev-deps:
 	go get -u github.com/alecthomas/gometalinter
