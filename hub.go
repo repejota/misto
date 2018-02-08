@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
-
-	"github.com/fatih/color"
 )
 
 // TODO:
@@ -34,6 +31,21 @@ func NewHub() (*Hub, error) {
 	return hub, nil
 }
 
+// AppendProducer ...
+func (h *Hub) AppendProducer(id string) {
+	reader, err := h.dc.ContainerLogs(id, true)
+	if err != nil {
+		log.Println(err)
+	}
+	h.Producers[id] = reader
+}
+
+// RemoveProducer ...
+func (h *Hub) RemoveProducer(id string) {
+	h.Producers[id].Close()
+	delete(h.Producers, id)
+}
+
 // Run ...
 func (h *Hub) Run() error {
 	err := h.build()
@@ -52,14 +64,12 @@ func (h *Hub) build() error {
 	}
 	for _, container := range containers {
 		// append container/producer on the hub
-		reader, err := h.dc.ContainerLogs(container.ID, true)
-		if err != nil {
-			log.Println(err)
-		}
-		h.Producers[container.ID] = reader
-		shortID := h.dc.ShortID(container.ID)
-		green := color.New(color.FgGreen).SprintFunc()
-		log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
+		/*
+			shortID := h.dc.ShortID(container.ID)
+			containerName := strings.Join(container.Names, ",")
+			color.Green("Append producer: id=%s name=%s", shortID, containerName)
+		*/
+		h.AppendProducer(container.ID)
 	}
 	return nil
 }
@@ -72,25 +82,23 @@ func (h *Hub) monitor() {
 		case err := <-cerrs:
 			log.Printf("error event %v", err)
 		case event := <-cevents:
-			containerID := event.Actor.ID
-			shortID := h.dc.ShortID(containerID)
-			containerName := event.Actor.Attributes["name"]
 			switch event.Action {
 			case "start":
 				// append container/producer on the hub
-				reader, err := h.dc.ContainerLogs(containerID, true)
-				if err != nil {
-					log.Println(err)
-				}
-				h.Producers[containerID] = reader
-				green := color.New(color.FgGreen).SprintFunc()
-				log.Printf(green("Append producer: id=%s name=%s"), shortID, containerName)
+				/*
+					shortID := h.dc.ShortID(event.Actor.ID)
+					containerName := event.Actor.Attributes["name"]
+					color.Green("Append producer: id=%s name=%s", shortID, containerName)
+				*/
+				h.AppendProducer(event.Actor.ID)
 			case "stop":
 				// remove container/producer from the hub and close its reader
-				h.Producers[containerID].Close()
-				delete(h.Producers, containerID)
-				red := color.New(color.FgRed).SprintFunc()
-				log.Printf(red("Remove producer: id=%s name=%s"), shortID, containerName)
+				/*
+					shortID := h.dc.ShortID(event.Actor.ID)
+					containerName := event.Actor.Attributes["name"]
+					color.Red("Remove producer: id=%s name=%s", shortID, containerName)
+				*/
+				h.RemoveProducer(event.Actor.ID)
 			}
 		}
 	}
