@@ -4,12 +4,16 @@ import (
 	"log"
 )
 
+// TODO:
+// * Implement hub.Stop() method, probably stopping the monitor canceling the
+// docker client context.
+
 // Hub ...
 type Hub struct {
 	dc *DockerClient
 
 	// TODO:
-	// Better be a set as removing from an slice is O(n) and we want O(1)
+	// * Better be a set as removing from an slice is O(n) and we want O(1)
 	// https://stackoverflow.com/a/31080520
 	Producers []string
 }
