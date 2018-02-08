@@ -21,18 +21,18 @@ func NewHub() *Hub {
 }
 
 // Run ...
-func (h *Hub) Run() {
+func (h *Hub) Run() error {
 	dc, err := NewDockerClient()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	h.dc = dc
-
 	err = h.build()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	h.monitor()
+	go h.monitor()
+	return nil
 }
 
 // build ...
