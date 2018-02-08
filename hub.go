@@ -3,6 +3,9 @@ package misto
 import (
 	"fmt"
 	"log"
+	"strings"
+
+	"github.com/fatih/color"
 )
 
 // TODO:
@@ -11,12 +14,8 @@ import (
 
 // Hub ...
 type Hub struct {
-	dc *DockerClient
-
-	// TODO:
-	// * Better be a set as removing from an slice is O(n) and we want O(1)
-	// https://stackoverflow.com/a/31080520
-	Producers []string
+	dc        *DockerClient
+	Producers map[string]string
 }
 
 // NewHub ...
@@ -26,7 +25,8 @@ func NewHub() (*Hub, error) {
 		return nil, fmt.Errorf("can't create a hub %v", err)
 	}
 	hub := &Hub{
-		dc: client,
+		dc:        client,
+		Producers: make(map[string]string),
 	}
 	return hub, nil
 }
@@ -37,9 +37,7 @@ func (h *Hub) Run() error {
 	if err != nil {
 		return err
 	}
-
 	go h.monitor()
-
 	return nil
 }
 
@@ -50,10 +48,11 @@ func (h *Hub) build() error {
 		return err
 	}
 	for _, container := range containers {
-		h.Producers = append(h.Producers, container.ID)
-		// shortID := h.dc.ShortID(container.ID)
-		// green := color.New(color.FgGreen).SprintFunc()
-		// log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
+		// append container/producer on the hub
+		h.Producers[container.ID] = container.ID
+		shortID := h.dc.ShortID(container.ID)
+		green := color.New(color.FgGreen).SprintFunc()
+		log.Printf(green("Append producer: id=%s name=%s"), shortID, strings.Join(container.Names, ","))
 	}
 	return nil
 }
@@ -67,22 +66,18 @@ func (h *Hub) monitor() {
 			log.Println("ERROR:", err)
 		case event := <-cevents:
 			containerID := event.Actor.ID
-			// shortID := h.dc.ShortID(containerID)
+			shortID := h.dc.ShortID(containerID)
 			switch event.Action {
 			case "start":
 				// append container/producer on the hub
-				h.Producers = append(h.Producers, containerID)
-				// green := color.New(color.FgGreen).SprintFunc()
-				// log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				h.Producers[containerID] = containerID
+				green := color.New(color.FgGreen).SprintFunc()
+				log.Printf(green("Append producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			case "stop":
 				// remove container/producer from the hub
-				for k, v := range h.Producers {
-					if containerID == v {
-						h.Producers = append(h.Producers[:k], h.Producers[k+1:]...)
-					}
-				}
-				// red := color.New(color.FgRed).SprintFunc()
-				// log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
+				delete(h.Producers, containerID)
+				red := color.New(color.FgRed).SprintFunc()
+				log.Printf(red("Remove producer: id=%s name=%s"), shortID, event.Actor.Attributes["name"])
 			}
 		}
 	}
