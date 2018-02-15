@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+
+	"github.com/repejota/cscanner"
 )
 
 // TODO:
@@ -131,7 +133,7 @@ func (h *Hub) monitor() {
 // handleProducers ...
 func (h *Hub) handleProducers() error {
 	readers := h.ProducersReaders()
-	scanner := NewConcurrentScanner(readers)
+	scanner := cscanner.NewConcurrentScanner(readers)
 	for scanner.Scan() {
 		msg := scanner.Text()
 		log.Printf("%s", msg)
