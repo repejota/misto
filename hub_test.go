@@ -15,17 +15,4 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package main
-
-import "github.com/repejota/misto/cmd"
-
-var (
-	// Version ...
-	Version string
-	// Build ...
-	Build string
-)
-
-func main() {
-	cmd.Execute()
-}
+package misto_test
