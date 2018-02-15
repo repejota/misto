@@ -136,6 +136,8 @@ func (h *Hub) handleProducers() error {
 	scanner := cscanner.NewConcurrentScanner(readers)
 	for scanner.Scan() {
 		msg := scanner.Text()
+		// TODO:
+		// - So something with the log line
 		log.Printf("%s", msg)
 	}
 	if err := scanner.Err(); err != nil {
