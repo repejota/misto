@@ -21,7 +21,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
+	"github.com/fatih/color"
 	"github.com/repejota/cscanner"
 )
 
@@ -72,8 +74,8 @@ func (h *Hub) RemoveProducer(id string) {
 	delete(h.Producers, id)
 }
 
-// Run ...
-func (h *Hub) Run() {
+// ListenAndServe ...
+func (h *Hub) ListenAndServe() {
 	err := h.build()
 	if err != nil {
 		log.Println(err)
@@ -90,19 +92,18 @@ func (h *Hub) build() error {
 	}
 	for _, container := range containers {
 		// append container/producer on the hub
-		/*
-			shortID := h.dc.ShortID(container.ID)
-			containerName := strings.Join(container.Names, ",")
-			color.Green("Append producer: id=%s name=%s", shortID, containerName)
-		*/
+		shortID := h.dc.ShortID(container.ID)
+		containerName := strings.Join(container.Names, ",")
+		color.Green("Append producer: id=%s name=%s", shortID, containerName)
 		h.AppendProducer(container.ID)
 	}
+	fmt.Println()
 	return nil
 }
 
 // monitor ...
 func (h *Hub) monitor() {
-	cevents, cerrs := h.dc.MonitgorStartStopContainerEvents()
+	cevents, cerrs := h.dc.MonitorEvents()
 	for {
 		select {
 		case err := <-cerrs:
@@ -111,21 +112,20 @@ func (h *Hub) monitor() {
 			switch event.Action {
 			case "start":
 				// append container/producer on the hub
-				/*
-					shortID := h.dc.ShortID(event.Actor.ID)
-					containerName := event.Actor.Attributes["name"]
-					color.Green("Append producer: id=%s name=%s", shortID, containerName)
-				*/
+				shortID := h.dc.ShortID(event.Actor.ID)
+				containerName := event.Actor.Attributes["name"]
+				color.Green("Append producer: id=%s name=%s", shortID, containerName)
 				h.AppendProducer(event.Actor.ID)
 			case "stop":
+			case "die":
 				// remove container/producer from the hub and close its reader
-				/*
-					shortID := h.dc.ShortID(event.Actor.ID)
-					containerName := event.Actor.Attributes["name"]
-					color.Red("Remove producer: id=%s name=%s", shortID, containerName)
-				*/
+				shortID := h.dc.ShortID(event.Actor.ID)
+				containerName := event.Actor.Attributes["name"]
+				color.Red("Remove producer: id=%s name=%s", shortID, containerName)
 				h.RemoveProducer(event.Actor.ID)
 			}
+
+			color.Yellow("%v", len(h.Producers))
 		}
 	}
 }
