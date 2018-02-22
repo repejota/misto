@@ -46,7 +46,7 @@ var RootCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		hub.Run()
+		hub.ListenAndServe()
 	},
 }
 

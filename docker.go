@@ -72,13 +72,11 @@ func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, er
 	return reader, nil
 }
 
-// MonitgorStartStopContainerEvents ...
-func (dc *DockerClient) MonitgorStartStopContainerEvents() (<-chan events.Message, <-chan error) {
+// MonitorEvents ...
+func (dc *DockerClient) MonitorEvents() (<-chan events.Message, <-chan error) {
 	ctx := context.Background()
 	f := filters.NewArgs()
 	f.Add("type", "container")
-	f.Add("event", "start")
-	f.Add("event", "stop")
 	options := types.EventsOptions{
 		Filters: f,
 	}

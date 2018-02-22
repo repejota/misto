@@ -71,3 +71,8 @@ clean:
 
 godoc-serve:
 	godoc -http=":9090"
+
+# Logs
+
+logs:
+	docker run -t --name logs --rm alpine echo "foooo"
