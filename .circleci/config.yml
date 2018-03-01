@@ -25,6 +25,6 @@ jobs:
       - run: go get -v -t -d ./...
       - run: go test -v ./...
       - run: make cover-profile
-      - rum: make coveralls
+      - run: make coveralls
       - run: make dev-deps
       - run: make lint
