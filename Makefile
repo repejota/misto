@@ -56,9 +56,9 @@ deps:
 	go get -v -t -d -u github.com/repejota/cscanner
 
 dev-deps:
-	go get -v -t -d -u github.com/alecthomas/gometalinter
+	go get -v -t -u github.com/alecthomas/gometalinter
 	gometalinter --install
-	go get -v -t -d -u github.com/mattn/goveralls
+	go get -v -t -u github.com/mattn/goveralls
 
 # Cleaning up
 
