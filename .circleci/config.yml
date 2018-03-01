@@ -23,8 +23,8 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: make deps
+      - run: make dev-deps
       - run: make test
       - run: make cover-profile
       - run: make coveralls
-      - run: make dev-deps
       - run: make lint
