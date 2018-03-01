@@ -50,13 +50,14 @@ lint:
 # Dependencies
 
 deps:
-	go get -u github.com/docker/docker/client
-	go get -u github.com/fatih/color
-	go get -u github.com/spf13/cobra
+	go get -v -t -d -u github.com/docker/docker/client
+	go get -v -t -d -u github.com/fatih/color
+	go get -v -t -d -u github.com/spf13/cobra
 
 dev-deps:
-	go get -u github.com/alecthomas/gometalinter
+	go get -v -t -d -u github.com/alecthomas/gometalinter
 	gometalinter --install
+	go get -v -t -d -u github.com/mattn/goveralls
 
 # Cleaning up
 
