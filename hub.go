@@ -84,7 +84,10 @@ func (h *Hub) ListenAndServe() {
 		log.Println(err)
 	}
 	go h.monitor()
-	h.handleProducers()
+	err = h.handleProducers()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 // build ...
