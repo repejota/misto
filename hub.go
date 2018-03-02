@@ -80,7 +80,7 @@ func (h *Hub) Populate() error {
 		h.appendProducer(producer)
 	}
 
-	color.Blue("Hub populated ...")
+	color.Blue("Hub populated")
 
 	return nil
 }
@@ -130,16 +130,17 @@ func (h *Hub) Run() {
 		}
 	}()
 
-	color.Blue("Hub running ...")
+	color.Blue("Hub running")
 	h.handleProducers()
 }
 
 // Stop ...
 func (h *Hub) Stop(ctx context.Context) error {
-	// stop producers
+	log.Println("Stopping Hub")
 	for _, producer := range h.Producers {
 		h.removeProducer(producer.Metadata.ID)
 	}
+	color.Blue("Hub stopped")
 	return nil
 }
 

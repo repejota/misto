@@ -50,12 +50,10 @@ func Main() {
 	// 3 - run hub in a separate goroutine
 	go hub.Run()
 
+	// 4 - stop hub if signal received
 	<-stop
-
-	log.Println("shutting down ...")
 	ctx, cancel := context.WithTimeout(context.Background(), *shutdownTimeout)
 	defer cancel()
-
 	err = hub.Stop(ctx)
 	if err != nil {
 		log.Fatal(err)
