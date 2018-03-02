@@ -3,9 +3,15 @@ services:
   container1:
     build: .
     container_name: logfaker1
+    restart: on-failure
+    command: python3 main.py
   container2:
     build: .
     container_name: logfaker2
+    restart: on-failure
+    command: python3 main.py
   container3:
     build: .
     container_name: logfaker3
+    restart: on-failure
+    command: python3 main.py
