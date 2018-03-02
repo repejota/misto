@@ -1,5 +1,6 @@
 import sys
 import time
+import random
 
 import schedule
 from faker import Faker
@@ -11,14 +12,18 @@ def generate_fakelog():
     return logstring
 
 def log_stderr(logstring):
-    sys.stderr.write(logstring)
+    print(logstring, file=sys.stderr)
 
 def log_stdout(logstring):
-    sys.stdout.write(logstring)
+    print(logstring)
 
 def job():
     logstring = generate_fakelog()
-    print(logstring)
+    if random.random() > 0.5:
+        log_stdout(logstring)
+    else:
+        logstring = "{} {}".format("ERROR:", logstring)
+        log_stderr(logstring)
 
 def main():
     schedule.every(2).seconds.do(job)
