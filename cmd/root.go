@@ -37,16 +37,16 @@ var RootCmd = &cobra.Command{
 	Long:  `Misto tails logs from a docker daemon`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// if --version flag is provided, show version information and exit
 		if versionFlag {
 			showVersion()
+			os.Exit(2)
 		}
 
-		hub, err := misto.NewHub()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+		misto.Main()
+
+		for {
 		}
-		hub.ListenAndServe()
 	},
 }
 
@@ -62,19 +62,19 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	RootCmd.Flags().BoolVarP(&verboseFlag, "verbose", "v", false, "enable verbose mode")
 	RootCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "show version number")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	// TODO:
+	// Unimplemented
 }
 
 // snowVersion shows the program build and version information.
 func showVersion() {
-	// TODO:
-	// Show the real version information
-	fmt.Println("misto v.0.0.0-0498275295")
-	os.Exit(2)
+	Version := "0.0.0"
+	Build := "buildid"
+	versionInformation := fmt.Sprintf("misto v.%s-%s", Version, Build)
+	fmt.Println(versionInformation)
 }

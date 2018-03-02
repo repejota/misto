@@ -72,8 +72,8 @@ func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, er
 	return reader, nil
 }
 
-// MonitorEvents ...
-func (dc *DockerClient) MonitorEvents() (<-chan events.Message, <-chan error) {
+// ContainerEvents ...
+func (dc *DockerClient) ContainerEvents() (<-chan events.Message, <-chan error) {
 	ctx := context.Background()
 	f := filters.NewArgs()
 	f.Add("type", "container")
@@ -81,10 +81,4 @@ func (dc *DockerClient) MonitorEvents() (<-chan events.Message, <-chan error) {
 		Filters: f,
 	}
 	return dc.cli.Events(ctx, options)
-}
-
-// ShortID ...
-func (dc *DockerClient) ShortID(longID string) string {
-	shortID := longID[:12]
-	return shortID
 }
