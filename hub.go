@@ -23,9 +23,8 @@ import (
 	"io"
 	"log"
 
-	"github.com/repejota/cscanner"
-
 	"github.com/fatih/color"
+	"github.com/repejota/cscanner"
 )
 
 // Hub ...
@@ -41,16 +40,12 @@ func NewHub() (*Hub, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't create a hub %v", err)
 	}
-
 	hub := &Hub{
 		dc:        client,
 		Producers: make(map[string]*Producer),
 	}
-
 	log.Printf("Creating Hub with %d producers\n", len(hub.Producers))
-
 	color.Blue("Hub created ...")
-
 	return hub, nil
 }
 
@@ -61,9 +56,7 @@ func (h *Hub) Populate() error {
 	if err != nil {
 		return err
 	}
-
 	log.Printf("Populating Hub with %d producers\n", len(containers))
-
 	// create producer for each container
 	for _, container := range containers {
 		reader, err := h.dc.ContainerLogs(container.ID, true)
@@ -79,9 +72,7 @@ func (h *Hub) Populate() error {
 		}
 		h.appendProducer(producer)
 	}
-
 	color.Blue("Hub populated")
-
 	return nil
 }
 
@@ -97,7 +88,6 @@ func (h *Hub) Run() {
 			log.Println(err)
 		}
 	}()
-
 	// Monitor creation/removal of producers
 	go func() {
 		cevents, cerrs := h.dc.ContainerEvents()
@@ -129,7 +119,6 @@ func (h *Hub) Run() {
 			}
 		}
 	}()
-
 	color.Blue("Hub running")
 	h.handleProducers()
 }
