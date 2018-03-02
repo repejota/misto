@@ -26,7 +26,8 @@ def job():
         log_stderr(logstring)
 
 def main():
-    schedule.every(2).seconds.do(job)
+    wait = random.randrange(10)+1
+    schedule.every(wait).seconds.do(job)
     while True:
         schedule.run_pending()
         time.sleep(1)

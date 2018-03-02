@@ -1,0 +1,11 @@
+version: '3'
+services:
+  logfaker1:
+    build: .
+    container_name: logfaker1
+  logfaker2:
+    build: .
+    container_name: logfaker2
+  logfaker3:
+    build: .
+    container_name: logfaker3
