@@ -16,23 +16,21 @@ def log_stderr(logstring):
     print(logstring, file=sys.stderr)
 
 def log_stdout(logstring):
-    print(logstring)
+    print(logstring, file=sys.stdout)
 
 def job():
     logstring = generate_fakelog()
-    """
+    
     if random.random() > 0.5:
+        logstring = "{} {}".format("[stdout]", logstring)
         log_stdout(logstring)
     else:
-        logstring = "{} {}".format("ERROR:", logstring)
+        logstring = "{} {}".format("[stderr]", logstring)
         log_stderr(logstring)
-    """    
-    logging.basicConfig(level=logging.INFO)
-    logging.debug("LOG:", logstring)
 
 def main():
     wait = random.randrange(10)+1
-    schedule.every(wait).seconds.do(job)
+    schedule.every(1).seconds.do(job)
     while True:
         schedule.run_pending()
         time.sleep(1)
