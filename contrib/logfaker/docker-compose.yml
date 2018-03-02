@@ -1,0 +1,17 @@
+version: '3'
+services:
+  container1:
+    build: .
+    container_name: container1
+    restart: always
+    command: python3 main.py
+  container2:
+    build: .
+    container_name: container2
+    restart: always
+    command: python3 main.py
+  container3:
+    build: .
+    container_name: container3
+    restart: always
+    command: python3 main.py

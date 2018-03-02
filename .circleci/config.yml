@@ -26,5 +26,5 @@ jobs:
       - run: make dev-deps
       - run: make test
       - run: make cover-profile
-      - run: make coveralls
       - run: make lint
+      # - run: make coveralls
