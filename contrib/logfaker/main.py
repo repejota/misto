@@ -32,7 +32,7 @@ def main():
     while True:
         job()
         wait = random.randrange(9)+1
-        time.sleep(wait)
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
