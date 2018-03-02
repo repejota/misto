@@ -4,7 +4,7 @@ docker-build:	## Build logfaker container
 
 .PHONY: docker-run
 docker-run:	## Run logfaker container
-	docker run -t --name logfaker1 --rm repejota/logfaker echo "logfakeeeeeer"
+	docker run -t --name logfaker1 --rm repejota/logfaker python3 /opt/app/main.py
 
 .PHONY: help
 help:	## Show this help
