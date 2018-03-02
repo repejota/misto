@@ -70,7 +70,10 @@ func (h *Hub) AppendProducer(id string) {
 
 // RemoveProducer ...
 func (h *Hub) RemoveProducer(id string) {
-	h.Producers[id].Close()
+	err := h.Producers[id].Close()
+	if err != nil {
+		log.Println(err)
+	}
 	delete(h.Producers, id)
 }
 
