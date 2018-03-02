@@ -18,6 +18,7 @@
 package misto
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -134,37 +135,40 @@ func (h *Hub) Run() {
 }
 
 // Stop ...
-// TODO:
-// * stop listening docker events and call shutdown?
-func (h *Hub) Stop() {
+func (h *Hub) Stop(ctx context.Context) error {
+	// stop producers
 	for _, producer := range h.Producers {
 		h.removeProducer(producer.Metadata.ID)
 	}
+	return nil
 }
 
-func (h *Hub) appendProducer(producer *Producer) {
+func (h *Hub) appendProducer(producer *Producer) error {
 	color.Green("Append producer: id=%s name=%s", producer.Metadata.ID, producer.Metadata.Names)
 	h.Producers[producer.Metadata.ID] = producer
-	h.updateConcurrentScanner()
+	err := h.updateConcurrentScanner()
+	return err
 }
 
-func (h *Hub) removeProducer(id string) {
+func (h *Hub) removeProducer(id string) error {
 	producer := h.Producers[id]
 	color.Red("Remove producer: id=%s name=%s", producer.Metadata.ID, producer.Metadata.Names)
 	err := h.Producers[id].Reader.Close()
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 	delete(h.Producers, id)
-	h.updateConcurrentScanner()
+	err = h.updateConcurrentScanner()
+	return nil
 }
 
-func (h *Hub) updateConcurrentScanner() {
+func (h *Hub) updateConcurrentScanner() error {
 	var readers []io.Reader
 	for _, producer := range h.Producers {
 		readers = append(readers, producer.Reader)
 	}
 	h.scanner = cscanner.NewConcurrentScanner(readers)
+	return nil
 }
 
 func (h *Hub) handleProducers() error {

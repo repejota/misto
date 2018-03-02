@@ -44,9 +44,6 @@ var RootCmd = &cobra.Command{
 		}
 
 		misto.Main()
-
-		for {
-		}
 	},
 }
 

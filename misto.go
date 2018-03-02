@@ -18,11 +18,23 @@
 package misto
 
 import (
+	"context"
+	"flag"
 	"log"
+	"os"
+	"os/signal"
+	"time"
+)
+
+var (
+	shutdownTimeout = flag.Duration("shutdown-timeout", 10*time.Second, "shutdown timeout (5s,5m,5h) before producers are cancelled")
 )
 
 // Main ...
 func Main() {
+	stop := make(chan os.Signal)
+	signal.Notify(stop, os.Interrupt)
+
 	// 1 - create new empty hub
 	hub, err := NewHub()
 	if err != nil {
@@ -37,4 +49,15 @@ func Main() {
 
 	// 3 - run hub in a separate goroutine
 	go hub.Run()
+
+	<-stop
+
+	log.Println("shutting down ...")
+	ctx, cancel := context.WithTimeout(context.Background(), *shutdownTimeout)
+	defer cancel()
+
+	err = hub.Stop(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
