@@ -19,43 +19,23 @@ package misto
 
 import (
 	"context"
-	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"time"
 )
 
-var (
-	shutdownTimeout = flag.Duration("shutdown-timeout", 10*time.Second, "shutdown timeout (5s,5m,5h) before producers are cancelled")
-)
+var ()
 
-// Main ...
+// Main is the CLI initial entry point
 func Main() {
-	stop := make(chan os.Signal)
-	signal.Notify(stop, os.Interrupt)
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, os.Interrupt)
 
-	// 1 - create new empty hub
-	hub, err := NewHub()
-	if err != nil {
-		log.Fatal(err)
-	}
+	h := NewHub()
+	go h.Run()
 
-	// 2 - populate hub with available producers
-	err = hub.Populate()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// 3 - run hub in a separate goroutine
-	go hub.Run()
-
-	// 4 - stop hub if signal received
-	<-stop
-	ctx, cancel := context.WithTimeout(context.Background(), *shutdownTimeout)
+	<-shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = hub.Stop(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	h.Shutdown(ctx)
 }

@@ -50,6 +50,7 @@ lint:
 # Dependencies
 
 deps:
+	go get -v -t -d -u github.com/sirupsen/logrus
 	go get -v -t -d -u github.com/docker/docker/client
 	go get -v -t -d -u github.com/fatih/color
 	go get -v -t -d -u github.com/spf13/cobra

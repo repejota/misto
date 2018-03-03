@@ -19,66 +19,77 @@ package misto
 
 import (
 	"context"
-	"fmt"
-	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+
+	logger "github.com/Sirupsen/logrus"
 )
 
-// DockerClient ...
-type DockerClient struct {
-	cli *client.Client
+// DockerProvider ...
+type DockerProvider interface {
+	Connect()
+	Disconnect()
+	Containers()
 }
 
-// NewDockerClient ...
-func NewDockerClient() (*DockerClient, error) {
-	dc := &DockerClient{}
-	// Get docker client
+// LocalDockerProvider ...
+type LocalDockerProvider struct {
+	cli        *client.Client
+	containers []types.Container
+}
+
+// NewLocalDockerProvider ...
+func NewLocalDockerProvider() *LocalDockerProvider {
+	logger.Info("Using local docker server as a provider")
+	provider := &LocalDockerProvider{
+		containers: make([]types.Container, 0),
+	}
+	return provider
+}
+
+// Connect ...
+func (p *LocalDockerProvider) Connect() {
+	logger.Debug("Conecting to local docker server")
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		return dc, err
+		logger.Error("Can't connect to docker server", err)
 	}
-	dc.cli = cli
-	return dc, nil
+	defer cli.Close()
+	p.cli = cli
 }
 
-// ContainerList ...
-func (dc *DockerClient) ContainerList() ([]types.Container, error) {
+// Containers ...
+func (p *LocalDockerProvider) Containers() {
+	logger.Debug("Get available containers")
 	ctx := context.Background()
 	options := types.ContainerListOptions{}
-	containers, err := dc.cli.ContainerList(ctx, options)
+	containers, err := p.cli.ContainerList(ctx, options)
 	if err != nil {
-		return nil, fmt.Errorf("can't get a list of containers %v", err)
+		logger.Error("Can't list containers", err)
 	}
-	return containers, nil
-}
-
-// ContainerLogs ...
-func (dc *DockerClient) ContainerLogs(id string, follow bool) (io.ReadCloser, error) {
-	ctx := context.Background()
-	options := types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Follow:     follow,
-		Timestamps: false,
-	}
-	reader, err := dc.cli.ContainerLogs(ctx, id, options)
-	if err != nil {
-		return nil, fmt.Errorf("can't get container logs %v", err)
-	}
-	return reader, nil
+	p.containers = containers
+	logger.Debugf("%d container/s", len(p.containers))
 }
 
 // ContainerEvents ...
-func (dc *DockerClient) ContainerEvents() (<-chan events.Message, <-chan error) {
+func (p *LocalDockerProvider) ContainerEvents() (<-chan events.Message, <-chan error) {
 	ctx := context.Background()
 	f := filters.NewArgs()
 	f.Add("type", "container")
 	options := types.EventsOptions{
 		Filters: f,
 	}
-	return dc.cli.Events(ctx, options)
+	return p.cli.Events(ctx, options)
+}
+
+// DisConnect ...
+func (p *LocalDockerProvider) DisConnect() {
+	logger.Debug("Disconecting from local docker server")
+	err := p.cli.Close()
+	if err != nil {
+		logger.Error(err)
+	}
 }

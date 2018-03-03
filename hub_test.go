@@ -16,17 +16,3 @@
 // under the License.
 
 package misto_test
-
-import (
-	"testing"
-
-	"github.com/repejota/misto"
-)
-
-func TestHubInstance(t *testing.T) {
-	hub, err := misto.NewHub()
-	if err != nil {
-		t.Fatal(err)
-	}
-	equals(t, len(hub.Producers), 0)
-}
