@@ -17,7 +17,11 @@
 
 package main
 
-import "github.com/repejota/misto/cmd"
+import (
+	logger "github.com/Sirupsen/logrus"
+
+	"github.com/repejota/misto/cmd"
+)
 
 var (
 	// Version ...
@@ -27,5 +31,7 @@ var (
 )
 
 func main() {
+	logger.SetLevel(logger.FatalLevel)
+
 	cmd.Execute()
 }

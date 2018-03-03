@@ -18,165 +18,91 @@
 package misto
 
 import (
-	"fmt"
-	"io"
-	"log"
+	"context"
+	"sync"
 
-	"github.com/repejota/cscanner"
-
-	"github.com/fatih/color"
+	logger "github.com/Sirupsen/logrus"
 )
 
-// Hub ...
+// Hub is the type that handles producers and consumers
 type Hub struct {
-	dc        *DockerClient
-	Producers map[string]*Producer
-	scanner   *cscanner.ConcurrentScanner
+	provider *LocalDockerProvider
+
+	mu        sync.Mutex
+	producers map[string]*Producer
 }
 
 // NewHub ...
-func NewHub() (*Hub, error) {
-	client, err := NewDockerClient()
-	if err != nil {
-		return nil, fmt.Errorf("can't create a hub %v", err)
-	}
-
+func NewHub() *Hub {
+	logger.Info("Creating Hub")
 	hub := &Hub{
-		dc:        client,
-		Producers: make(map[string]*Producer),
+		producers: make(map[string]*Producer),
 	}
-
-	log.Printf("Creating Hub with %d producers\n", len(hub.Producers))
-
-	color.Blue("Hub created ...")
-
-	return hub, nil
-}
-
-// Populate ...
-func (h *Hub) Populate() error {
-	// get containers list
-	containers, err := h.dc.ContainerList()
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Populating Hub with %d producers\n", len(containers))
-
-	// create producer for each container
-	for _, container := range containers {
-		reader, err := h.dc.ContainerLogs(container.ID, true)
-		if err != nil {
-			return err
-		}
-		producer := &Producer{
-			Metadata: ProducerMetadata{
-				ID:    container.ID,
-				Names: container.Names,
-			},
-			Reader: reader,
-		}
-		h.appendProducer(producer)
-	}
-
-	color.Blue("Hub populated ...")
-
-	return nil
+	return hub
 }
 
 // Run ...
 func (h *Hub) Run() {
-	// Handle Producers
-	go func() {
-		for h.scanner.Scan() {
-			msg := h.scanner.Text()
-			log.Printf("%s", msg)
-		}
-		if err := h.scanner.Err(); err != nil {
-			log.Println(err)
-		}
-	}()
+	logger.Info("Connect provider")
+	h.provider = NewLocalDockerProvider()
+	h.provider.Connect()
+	logger.Info("Populate initial Hub state")
+	h.populate()
+	logger.Info("Monitor Hub creation/removal producers")
+	go h.monitor()
+}
 
-	// Monitor creation/removal of producers
-	go func() {
-		cevents, cerrs := h.dc.ContainerEvents()
-		for {
-			select {
-			case err := <-cerrs:
-				log.Printf("error event %v", err)
-			case event := <-cevents:
-				switch event.Action {
-				case "start":
-					reader, err := h.dc.ContainerLogs(event.Actor.ID, true)
-					if err != nil {
-						log.Println(err)
-					}
-					producer := &Producer{
-						Metadata: ProducerMetadata{
-							ID:    event.Actor.ID,
-							Names: []string{event.Actor.Attributes["name"]},
-						},
-						Reader: reader,
-					}
-					h.appendProducer(producer)
-					log.Printf("Updated Hub with %d producers\n", len(h.Producers))
-				case "stop":
-				case "die":
-					h.removeProducer(event.Actor.ID)
-					log.Printf("Updated Hub with %d producers\n", len(h.Producers))
-				}
+// Populate ...
+func (h *Hub) populate() {
+	h.provider.Containers()
+	for _, container := range h.provider.containers {
+		producer := NewProducer()
+		producer.metadata.id = container.ID
+		producer.metadata.name = container.Names[0]
+		h.mu.Lock()
+		h.producers[producer.metadata.id] = producer
+		h.mu.Unlock()
+	}
+}
+
+// Monitorize ...
+func (h *Hub) monitor() {
+	cevents, cerrs := h.provider.ContainerEvents()
+	for {
+		select {
+		case err := <-cerrs:
+			logger.Errorf("container event error %v", err)
+		case event := <-cevents:
+			switch event.Action {
+			case "start":
+				producer := NewProducer()
+				producer.metadata.id = event.Actor.ID
+				producer.metadata.name = event.Actor.Attributes["name"]
+				logger.Debugf("New producer %s (%s)", producer.metadata.id, producer.metadata.name)
+				h.mu.Lock()
+				h.producers[producer.metadata.id] = producer
+				h.mu.Unlock()
+			case "stop":
+			case "die":
+				producer := h.producers[event.Actor.ID]
+				producer.Close()
+				logger.Debugf("Remove producer %s (%s)", producer.metadata.id, producer.metadata.name)
+				h.mu.Lock()
+				delete(h.producers, producer.metadata.id)
+				h.mu.Unlock()
 			}
 		}
-	}()
-
-	color.Blue("Hub running ...")
-	h.handleProducers()
-}
-
-// Stop ...
-// TODO:
-// * stop listening docker events and call shutdown?
-func (h *Hub) Stop() {
-	for _, producer := range h.Producers {
-		h.removeProducer(producer.Metadata.ID)
 	}
 }
 
-func (h *Hub) appendProducer(producer *Producer) {
-	color.Green("Append producer: id=%s name=%s", producer.Metadata.ID, producer.Metadata.Names)
-	h.Producers[producer.Metadata.ID] = producer
-	h.updateConcurrentScanner()
-}
-
-func (h *Hub) removeProducer(id string) {
-	producer := h.Producers[id]
-	color.Red("Remove producer: id=%s name=%s", producer.Metadata.ID, producer.Metadata.Names)
-	err := h.Producers[id].Reader.Close()
-	if err != nil {
-		log.Println(err)
+// Shutdown ...
+func (h *Hub) Shutdown(ctx context.Context) {
+	logger.Info("Stopping Hub")
+	for key, producer := range h.producers {
+		producer.Close()
+		h.mu.Lock()
+		delete(h.producers, key)
+		h.mu.Unlock()
 	}
-	delete(h.Producers, id)
-	h.updateConcurrentScanner()
-}
-
-func (h *Hub) updateConcurrentScanner() {
-	var readers []io.Reader
-	for _, producer := range h.Producers {
-		readers = append(readers, producer.Reader)
-	}
-	h.scanner = cscanner.NewConcurrentScanner(readers)
-}
-
-func (h *Hub) handleProducers() error {
-	for h.scanner.Scan() {
-		msg := h.scanner.Text()
-		// TODO:
-		// - So something with the log line
-		log.Printf("%s", msg)
-	}
-	if err := h.scanner.Err(); err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
+	h.provider.DisConnect()
 }

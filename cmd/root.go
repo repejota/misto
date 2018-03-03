@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/repejota/misto"
+	logger "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/repejota/misto"
 )
 
 var (
@@ -37,16 +39,17 @@ var RootCmd = &cobra.Command{
 	Long:  `Misto tails logs from a docker daemon`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if --version flag is provided, show version information and exit
 		if versionFlag {
 			showVersion()
 			os.Exit(2)
 		}
 
-		misto.Main()
-
-		for {
+		logger.SetLevel(logger.FatalLevel)
+		if verboseFlag {
+			logger.SetLevel(logger.DebugLevel)
 		}
+
+		misto.Main()
 	},
 }
 
@@ -54,20 +57,20 @@ var RootCmd = &cobra.Command{
 // appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	err := RootCmd.Execute()
+	if err != nil {
+		logger.Fatal(err)
 	}
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "show version number")
+	RootCmd.Flags().BoolVarP(&verboseFlag, "verbose", "v", false, "enable verbose mode")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	// TODO:
 	// Unimplemented
 }
 

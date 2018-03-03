@@ -17,16 +17,25 @@
 
 package misto
 
-import "io"
-
-// ProducerMetadata ...
-type ProducerMetadata struct {
-	ID    string
-	Names []string
-}
+import (
+	logger "github.com/Sirupsen/logrus"
+)
 
 // Producer ...
 type Producer struct {
-	Metadata ProducerMetadata
-	Reader   io.ReadCloser
+	metadata struct {
+		id   string
+		name string
+	}
+}
+
+// NewProducer ...
+func NewProducer() *Producer {
+	p := &Producer{}
+	return p
+}
+
+// Close ...
+func (p *Producer) Close() {
+	logger.Debugf("Closing producer %s (%s)", p.metadata.id, p.metadata.name)
 }

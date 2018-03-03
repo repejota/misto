@@ -18,23 +18,24 @@
 package misto
 
 import (
-	"log"
+	"context"
+	"os"
+	"os/signal"
+	"time"
 )
 
-// Main ...
+var ()
+
+// Main is the CLI initial entry point
 func Main() {
-	// 1 - create new empty hub
-	hub, err := NewHub()
-	if err != nil {
-		log.Fatal(err)
-	}
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, os.Interrupt)
 
-	// 2 - populate hub with available producers
-	err = hub.Populate()
-	if err != nil {
-		log.Fatal(err)
-	}
+	h := NewHub()
+	go h.Run()
 
-	// 3 - run hub in a separate goroutine
-	go hub.Run()
+	<-shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	h.Shutdown(ctx)
 }
