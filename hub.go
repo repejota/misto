@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"sync"
 
-	logger "github.com/Sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 )
 
 // Hub is the type that handles producers and consumers

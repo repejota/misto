@@ -18,7 +18,7 @@
 package main
 
 import (
-	logger "github.com/Sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 
 	"github.com/repejota/misto/cmd"
 )
