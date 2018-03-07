@@ -58,7 +58,6 @@ func (p *LocalDockerProvider) Connect() {
 	if err != nil {
 		logger.Error("Can't connect to docker server", err)
 	}
-	defer cli.Close()
 	p.cli = cli
 }
 

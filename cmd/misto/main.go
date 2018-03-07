@@ -23,13 +23,6 @@ import (
 	"github.com/repejota/misto/cmd"
 )
 
-var (
-	// Version ...
-	Version string
-	// Build ...
-	Build string
-)
-
 func main() {
 	logger.SetLevel(logger.FatalLevel)
 
