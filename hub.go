@@ -18,7 +18,9 @@
 package misto
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"sync"
 
 	logger "github.com/Sirupsen/logrus"
@@ -48,8 +50,10 @@ func (h *Hub) Run() {
 	h.provider.Connect()
 	logger.Info("Populate initial Hub state")
 	h.populate()
-	logger.Info("Monitor Hub creation/removal producers")
-	go h.monitor()
+	logger.Info("Monitoring Hub")
+	go h.Monitor()
+	logger.Info("Handle Producers Logs")
+	go h.HandleProducers()
 }
 
 // Populate ...
@@ -59,14 +63,17 @@ func (h *Hub) populate() {
 		producer := NewProducer()
 		producer.metadata.id = container.ID
 		producer.metadata.name = container.Names[0]
+		producer.reader = h.provider.Logs(producer.metadata.id, true)
+		logger.Debugf("Append producer %s (%s)", producer.metadata.id, producer.metadata.name)
 		h.mu.Lock()
 		h.producers[producer.metadata.id] = producer
 		h.mu.Unlock()
 	}
 }
 
-// Monitorize ...
-func (h *Hub) monitor() {
+// Monitor ...
+func (h *Hub) Monitor() {
+	logger.Debug("Listening containers events")
 	cevents, cerrs := h.provider.ContainerEvents()
 	for {
 		select {
@@ -75,6 +82,7 @@ func (h *Hub) monitor() {
 		case event := <-cevents:
 			switch event.Action {
 			case "start":
+				logger.Debugf("New container %s event", event.Action)
 				producer := NewProducer()
 				producer.metadata.id = event.Actor.ID
 				producer.metadata.name = event.Actor.Attributes["name"]
@@ -84,6 +92,7 @@ func (h *Hub) monitor() {
 				h.mu.Unlock()
 			case "stop":
 			case "die":
+				logger.Debugf("New container %s event", event.Action)
 				producer := h.producers[event.Actor.ID]
 				producer.Close()
 				logger.Debugf("Remove producer %s (%s)", producer.metadata.id, producer.metadata.name)
@@ -92,6 +101,22 @@ func (h *Hub) monitor() {
 				h.mu.Unlock()
 			}
 		}
+	}
+}
+
+// HandleProducers ...
+func (h *Hub) HandleProducers() {
+	id := "45a7d8882df2a1b1095a7fc94f0343a9ae1738a31c87f9498e838c752d443b71"
+	logger.Debugf("Create scanner for producer %s", id)
+	producer := h.producers[id]
+	scanner := bufio.NewScanner(producer.reader)
+	for scanner.Scan() {
+		line := scanner.Text()
+		fmt.Printf("[%s] %s\n", producer.metadata.name, line)
+	}
+	err := scanner.Err()
+	if err != nil {
+		logger.Fatal(err)
 	}
 }
 

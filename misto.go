@@ -24,8 +24,6 @@ import (
 	"time"
 )
 
-var ()
-
 // Main is the CLI initial entry point
 func Main() {
 	shutdown := make(chan os.Signal)

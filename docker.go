@@ -19,6 +19,7 @@ package misto
 
 import (
 	"context"
+	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
@@ -92,4 +93,21 @@ func (p *LocalDockerProvider) DisConnect() {
 	if err != nil {
 		logger.Error(err)
 	}
+}
+
+// Logs ...
+func (p *LocalDockerProvider) Logs(id string, follow bool) io.ReadCloser {
+	ctx := context.Background()
+	options := types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     follow,
+		Timestamps: false,
+	}
+	reader, err := p.cli.ContainerLogs(ctx, id, options)
+	if err != nil {
+		logger.Errorf("can't get container logs %v", err)
+		return nil
+	}
+	return reader
 }
