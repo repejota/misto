@@ -18,7 +18,6 @@
 package misto
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"sync"
@@ -106,13 +105,11 @@ func (h *Hub) Monitor() {
 
 // HandleProducers ...
 func (h *Hub) HandleProducers() {
-	id := "45a7d8882df2a1b1095a7fc94f0343a9ae1738a31c87f9498e838c752d443b71"
-	logger.Debugf("Create scanner for producer %s", id)
-	producer := h.producers[id]
-	scanner := bufio.NewScanner(producer.reader)
+	producers := h.ProducersList()
+	scanner := NewConcurrentScanner(producers...)
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Printf("[%s] %s\n", producer.metadata.name, line)
+		fmt.Println(line)
 	}
 	err := scanner.Err()
 	if err != nil {
@@ -130,4 +127,13 @@ func (h *Hub) Shutdown(ctx context.Context) {
 		h.mu.Unlock()
 	}
 	h.provider.DisConnect()
+}
+
+// ProducersList ...
+func (h *Hub) ProducersList() []Producer {
+	var list []Producer
+	for _, producer := range h.producers {
+		list = append(list, *producer)
+	}
+	return list
 }
