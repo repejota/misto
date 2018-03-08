@@ -67,3 +67,42 @@ func TestHub(t *testing.T) {
 		t.Fatalf("Hub expected to have 0 producers but got %d", len(hub.Producers))
 	}
 }
+
+func TestEmptyHubSetup(t *testing.T) {
+	log.SetLevel(logrus.FatalLevel)
+
+	hub := misto.NewHub()
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Empty Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+
+	err := hub.Setup()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hub.Shutdown(context.Background())
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+}
+
+func TestEmptyHubRun(t *testing.T) {
+	log.SetLevel(logrus.FatalLevel)
+
+	hub := misto.NewHub()
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Empty Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+
+	hub.Run()
+
+	hub.Shutdown(context.Background())
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+}
