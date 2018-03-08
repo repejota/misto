@@ -45,12 +45,7 @@ coveralls:	## Send coverage report to https://coveralls.io/github/repejota/mist
 # Lint
 
 lint:	## Lint source code
-	gometalinter \
---disable=aligncheck \
---disable=gotype \
---disable=gas \
---cyclo-over=20 \
---tests
+	gometalinter --disable-all --enable=errcheck --enable=vet --enable=vetshadow
 
 # Dependencies
 
