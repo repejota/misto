@@ -18,8 +18,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -50,7 +53,15 @@ var RootCmd = &cobra.Command{
 			log.SetLevel(log.DebugLevel)
 		}
 
-		misto.Main()
+		shutdown := make(chan os.Signal, 1)
+		signal.Notify(shutdown, os.Interrupt)
+
+		hub := misto.NewHub()
+
+		<-shutdown
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		hub.Shutdown(ctx)
 	},
 }
 

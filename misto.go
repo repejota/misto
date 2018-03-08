@@ -16,24 +16,3 @@
 // under the License.
 
 package misto
-
-import (
-	"context"
-	"os"
-	"os/signal"
-	"time"
-)
-
-// Main is the CLI initial entry point
-func Main() {
-	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, os.Interrupt)
-
-	hub := NewHub()
-	// go hub.Run()
-
-	<-shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	hub.Shutdown(ctx)
-}
