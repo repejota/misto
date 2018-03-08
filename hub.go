@@ -25,11 +25,10 @@ import (
 
 // Hub is the type that handles producers and consumers
 type Hub struct {
-	//provider *LocalDockerProvider
 	Producers []*Producer
 }
 
-// NewHub ...
+// NewHub creates a new empty hub instance with no producers and consumers
 func NewHub() *Hub {
 	log.Info("Creating Hub")
 	hub := &Hub{
@@ -39,13 +38,15 @@ func NewHub() *Hub {
 	return hub
 }
 
-// Shutdown ...
+// Shutdown shut downs a hub, closing all its producers and consumers
 func (h *Hub) Shutdown(ctx context.Context) {
 	log.Info("Shutting down Hub")
 
 	for i, producer := range h.Producers {
+		log.Debug("Closing producer")
 		producer.Close()
 		h.Producers = append(h.Producers[:i], h.Producers[i+1:]...)
+		log.Debug("Closed producer")
 	}
 
 	log.Debug("Hub shut down")
