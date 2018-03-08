@@ -18,7 +18,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	logger "github.com/sirupsen/logrus"
@@ -40,7 +39,7 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if versionFlag {
-			showVersion()
+			misto.ShowVersion()
 			os.Exit(2)
 		}
 
@@ -72,12 +71,4 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	// Unimplemented
-}
-
-// snowVersion shows the program build and version information.
-func showVersion() {
-	Version := "0.0.0"
-	Build := "buildid"
-	versionInformation := fmt.Sprintf("misto v.%s-%s", Version, Build)
-	fmt.Println(versionInformation)
 }
