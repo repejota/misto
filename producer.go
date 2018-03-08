@@ -17,22 +17,8 @@
 
 package misto
 
-import (
-	"io"
-
-	logger "github.com/sirupsen/logrus"
-)
-
-// Metadata ...
-type Metadata struct {
-	id   string
-	name string
-}
-
 // Producer ...
 type Producer struct {
-	metadata Metadata
-	reader   io.ReadCloser
 }
 
 // NewProducer ...
@@ -43,9 +29,5 @@ func NewProducer() *Producer {
 
 // Close ...
 func (p *Producer) Close() {
-	logger.Debugf("Closing producer %s (%s)", p.metadata.id, p.metadata.name)
-	err := p.reader.Close()
-	if err != nil {
-		logger.Error(err)
-	}
+
 }

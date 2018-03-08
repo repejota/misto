@@ -18,13 +18,13 @@
 package main
 
 import (
-	logger "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/repejota/misto/cmd"
 )
 
 func main() {
-	logger.SetLevel(logger.FatalLevel)
+	log.SetLevel(log.FatalLevel)
 
 	cmd.Execute()
 }

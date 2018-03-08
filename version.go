@@ -24,7 +24,5 @@ func ShowVersion() string {
 	Version := "0.0.0"
 	Build := "buildid"
 	versionInformation := fmt.Sprintf("misto v.%s-%s", Version, Build)
-	fmt.Println(versionInformation)
-
 	return versionInformation
 }

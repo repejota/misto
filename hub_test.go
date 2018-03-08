@@ -16,3 +16,54 @@
 // under the License.
 
 package misto_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/sirupsen/logrus"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/repejota/misto"
+)
+
+func TestEmptyHub(t *testing.T) {
+	log.SetLevel(logrus.FatalLevel)
+
+	hub := misto.NewHub()
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Empty Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+
+	hub.Shutdown(context.Background())
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+}
+
+func TestHub(t *testing.T) {
+	log.SetLevel(logrus.FatalLevel)
+
+	hub := misto.NewHub()
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("New Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+
+	producer1 := misto.NewProducer()
+
+	hub.Producers = append(hub.Producers, producer1)
+
+	if len(hub.Producers) != 1 {
+		t.Fatalf("Hub expected to have 1 producers but got %d", len(hub.Producers))
+	}
+
+	hub.Shutdown(context.Background())
+
+	if len(hub.Producers) != 0 {
+		t.Fatalf("Hub expected to have 0 producers but got %d", len(hub.Producers))
+	}
+}

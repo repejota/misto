@@ -18,9 +18,10 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
-	logger "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/repejota/misto"
@@ -37,15 +38,16 @@ var RootCmd = &cobra.Command{
 	Short: "Tail docker logs",
 	Long:  `Misto tails logs from a docker daemon`,
 	Run: func(cmd *cobra.Command, args []string) {
+		log.SetLevel(log.FatalLevel)
 
 		if versionFlag {
-			misto.ShowVersion()
+			versionInformation := misto.ShowVersion()
+			fmt.Println(versionInformation)
 			os.Exit(2)
 		}
 
-		logger.SetLevel(logger.FatalLevel)
 		if verboseFlag {
-			logger.SetLevel(logger.DebugLevel)
+			log.SetLevel(log.DebugLevel)
 		}
 
 		misto.Main()
@@ -58,7 +60,7 @@ var RootCmd = &cobra.Command{
 func Execute() {
 	err := RootCmd.Execute()
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
