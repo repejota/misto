@@ -31,6 +31,8 @@ import (
 )
 
 var (
+	inputFlag   string
+	outputFlag  string
 	verboseFlag bool
 	versionFlag bool
 )
@@ -83,8 +85,10 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.SetUsageFunc(UsageFunc)
-	RootCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "show version number")
+	RootCmd.Flags().StringVarP(&inputFlag, "input", "i", "", "set an input")
+	RootCmd.Flags().StringVarP(&outputFlag, "output", "o", "", "set an output")
 	RootCmd.Flags().BoolVarP(&verboseFlag, "verbose", "v", false, "enable verbose mode")
+	RootCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "show version number")
 }
 
 // initConfig reads in config file and ENV variables if set.
