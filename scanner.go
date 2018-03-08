@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // ConcurrentScanner ...
@@ -71,6 +73,7 @@ func NewConcurrentScanner(producers ...Producer) *ConcurrentScanner {
 			if err := scanner.Err(); err != nil {
 				select {
 				case cscanner.errors <- err:
+					cscanner.metadata = producer.metadata
 					// Reprort we got an error
 				case <-ctx.Done():
 					// Exit now if context was cancelled, otherwise sending
@@ -112,5 +115,6 @@ func (cs *ConcurrentScanner) Text() string {
 
 // Err ...
 func (cs *ConcurrentScanner) Err() error {
+	logger.Debugf("error scanning at %s", cs.metadata.name)
 	return cs.err
 }
