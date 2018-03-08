@@ -50,8 +50,7 @@ lint:	## Lint source code
 --disable=gotype \
 --disable=gas \
 --cyclo-over=20 \
---tests \
---deadline=20s
+--tests
 
 # Dependencies
 
