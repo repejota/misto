@@ -57,6 +57,7 @@ var RootCmd = &cobra.Command{
 		signal.Notify(shutdown, os.Interrupt)
 
 		hub := misto.NewHub()
+		hub.Run()
 
 		<-shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

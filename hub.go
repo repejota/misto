@@ -38,6 +38,12 @@ func NewHub() *Hub {
 	return hub
 }
 
+// Run starts the hub event loop
+func (h *Hub) Run() {
+	log.Info("Starting hub event loop")
+	log.Info("Hub event loop started")
+}
+
 // Shutdown shut downs a hub, closing all its producers and consumers
 func (h *Hub) Shutdown(ctx context.Context) {
 	log.Info("Shutting down Hub")
