@@ -26,7 +26,12 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 
-	logger "github.com/Sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
+)
+
+const (
+	// DefaultDockerAPIVersion is the Docker API version supported
+	DefaultDockerAPIVersion = "1.35"
 )
 
 // DockerProvider ...
@@ -54,11 +59,16 @@ func NewLocalDockerProvider() *LocalDockerProvider {
 // Connect ...
 func (p *LocalDockerProvider) Connect() {
 	logger.Debug("Conecting to local docker server")
-	cli, err := client.NewEnvClient()
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.WithVersion(DefaultDockerAPIVersion))
 	if err != nil {
 		logger.Error("Can't connect to docker server", err)
 	}
-	defer cli.Close()
+	serverversion, err := cli.ServerVersion(ctx)
+	if err != nil {
+		logger.Error("Error getting server version", err)
+	}
+	logger.Debug("Connected %s/%s", cli.ClientVersion(), serverversion)
 	p.cli = cli
 }
 

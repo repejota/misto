@@ -20,7 +20,7 @@ package misto
 import (
 	"io"
 
-	logger "github.com/Sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 )
 
 // Producer ...

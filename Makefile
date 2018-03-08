@@ -9,21 +9,21 @@ LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
 
 # Build & Install
 
-install:
+install:	## Build and install package on your system
 	go install $(LDFLAGS) -v $(PACKAGES)
 
 .PHONY: version
-version:
+version:	## Show version information
 	@echo $(VERSION)-$(BUILD)
 
 # Testing
 
 .PHONY: test
-test:
+test:	## Execute package tests 
 	go test -v $(PACKAGES)
 
 .PHONY: cover-profile
-cover-profile:
+cover-profile:	## Compile tests coverage data
 	echo "mode: count" > coverage-all.out
 	$(foreach pkg,$(PACKAGES),\
 		go test -coverprofile=coverage.out -covermode=count $(pkg);\
@@ -31,32 +31,38 @@ cover-profile:
 	rm -rf coverage.out
 
 .PHONY: cover
-cover: cover-profile
+cover: cover-profile	## Generate test coverage data
 	go tool cover -func=coverage-all.out
 
 .PHONY: cover-html
-cover-html: cover-profile
+cover-html: cover-profile	## Generate coverage report
 	go tool cover -html=coverage-all.out
 
 .PHONY: coveralls
-coveralls:
-	goveralls -repotoken 9EmpV6j34d3itxKKXJCjTYicQPZhgzwj3
+coveralls:	## Send coverage report to https://coveralls.io/github/repejota/misto
+	goveralls -service circle-ci -repotoken 9EmpV6j34d3itxKKXJCjTYicQPZhgzwj3
 
 # Lint
 
-lint:
-	gometalinter --tests ./... --disable=gas
+lint:	## Lint source code
+	gometalinter \
+--disable=aligncheck \
+--disable=gotype \
+--disable=gas \
+--cyclo-over=20 \
+--tests \
+--deadline=20s
 
 # Dependencies
 
-deps:
+deps:	## Install package dependencies
 	go get -v -t -d -u github.com/sirupsen/logrus
 	go get -v -t -d -u github.com/docker/docker/client
 	go get -v -t -d -u github.com/fatih/color
 	go get -v -t -d -u github.com/spf13/cobra
 	go get -v -t -d -u github.com/repejota/cscanner
 
-dev-deps:
+dev-deps:	## Install devellpment dependencies
 	go get -v -t -u github.com/alecthomas/gometalinter
 	gometalinter --install
 	go get -v -t -u github.com/mattn/goveralls
@@ -64,7 +70,7 @@ dev-deps:
 # Cleaning up
 
 .PHONY: clean
-clean:
+clean:	## Delete generated development environment
 	go clean
 	rm -rf ${BINARY}
 	rm -rf coverage-all.out
@@ -72,13 +78,8 @@ clean:
 
 # Docs
 
-godoc-serve:
+godoc-serve:	## Serve documentation (godoc format) for this package at port HTTP 9090
 	godoc -http=":9090"
-
-# Logs
-
-logs:
-	docker run -t --name logs --rm alpine echo "foooo"
 
 .PHONY: help
 help:	## Show this help
