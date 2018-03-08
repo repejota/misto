@@ -26,7 +26,7 @@ import (
 
 // Main is the CLI initial entry point
 func Main() {
-	shutdown := make(chan os.Signal)
+	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt)
 
 	h := NewHub()

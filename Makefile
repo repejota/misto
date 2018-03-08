@@ -40,12 +40,18 @@ cover-html: cover-profile	## Generate coverage report
 
 .PHONY: coveralls
 coveralls:	## Send coverage report to https://coveralls.io/github/repejota/misto
-	goveralls -repotoken 9EmpV6j34d3itxKKXJCjTYicQPZhgzwj3
+	goveralls -service circle-ci -repotoken 9EmpV6j34d3itxKKXJCjTYicQPZhgzwj3
 
 # Lint
 
 lint:	## Lint source code
-	gometalinter --tests ./... --disable=gas
+	gometalinter \
+--disable=aligncheck \
+--disable=gotype \
+--disable=gas \
+--cyclo-over=20 \
+--tests \
+--deadline=20s
 
 # Dependencies
 
