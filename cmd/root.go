@@ -18,11 +18,9 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -45,30 +43,29 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.FatalLevel)
 
-		if versionFlag {
-			versionInformation := misto.ShowVersion()
-			fmt.Println(versionInformation)
-			os.Exit(2)
-		}
-
+		// --verbose
 		if verboseFlag {
 			log.SetLevel(log.DebugLevel)
 		}
 
+		m := misto.NewMisto()
+
+		// --version
+		if versionFlag {
+			versionInformation := m.ShowVersion()
+			fmt.Println(versionInformation)
+			os.Exit(2)
+		}
+
+		// graceful shutdown signal
 		shutdown := make(chan os.Signal, 1)
 		signal.Notify(shutdown, os.Interrupt)
 
-		hub := misto.NewHub()
-		err := hub.Setup()
-		if err != nil {
-			log.Fatal(err)
-		}
-		hub.Run()
+		m.Start()
 
 		<-shutdown
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		hub.Shutdown(ctx)
+		m.Stop()
+
 	},
 }
 

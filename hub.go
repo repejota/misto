@@ -38,6 +38,7 @@ func NewHub() *Hub {
 
 	log.WithFields(log.Fields{
 		"producers": len(hub.Producers),
+		"consumers": 0,
 	}).Debug("Hub created")
 
 	return hub
@@ -47,8 +48,15 @@ func NewHub() *Hub {
 func (h *Hub) Setup() error {
 	log.Info("Setup producers")
 
+	producer1 := NewDummyProducer()
+	h.Producers = append(h.Producers, producer1)
+	log.Debug("Created dummy producer: producer1")
+
+	log.Info("Setup consumers")
+
 	log.WithFields(log.Fields{
 		"producers": len(h.Producers),
+		"consumers": 0,
 	}).Debug("Hub initialized")
 
 	return nil
@@ -70,7 +78,7 @@ func (h *Hub) Shutdown(ctx context.Context) {
 		if err != nil {
 			log.Error(err)
 		}
-
+		log.Debug("Stoped dummy producer: producer1")
 		h.Producers = append(h.Producers[:i], h.Producers[i+1:]...)
 
 		log.WithFields(log.Fields{

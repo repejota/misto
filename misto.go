@@ -16,3 +16,54 @@
 // under the License.
 
 package misto
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	log "github.com/sirupsen/logrus"
+)
+
+// Misto is the main package type
+type Misto struct {
+	hub *Hub
+}
+
+// NewMisto creates a misto instance
+func NewMisto() *Misto {
+	log.Info("Creating misto")
+	m := &Misto{}
+	m.hub = NewHub()
+	log.Debug("Misto created")
+	return m
+}
+
+// Start runs misto services
+func (m *Misto) Start() error {
+	err := m.hub.Setup()
+	if err != nil {
+		return err
+	}
+	log.Info("Starting misto")
+	m.hub.Run()
+	log.Debug("Misto started")
+	return nil
+}
+
+// Stop stops misto services
+func (m *Misto) Stop() {
+	log.Info("Stopping misto")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	m.hub.Shutdown(ctx)
+	log.Debug("Misto stopped")
+}
+
+// ShowVersion returns and shows the program build and version information.
+func (m *Misto) ShowVersion() string {
+	Version := "0.0.0"
+	Build := "buildid"
+	versionInformation := fmt.Sprintf("misto v.%s-%s", Version, Build)
+	return versionInformation
+}

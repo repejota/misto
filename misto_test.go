@@ -24,7 +24,8 @@ import (
 )
 
 func TestShowVersion(t *testing.T) {
-	versionInfo := misto.ShowVersion()
+	m := misto.NewMisto()
+	versionInfo := m.ShowVersion()
 	versionInfoExpected := "misto v.0.0.0-buildid"
 	if versionInfo != versionInfoExpected {
 		t.Fatalf("ShowVersion expected to be %q but got %q", versionInfoExpected, versionInfo)

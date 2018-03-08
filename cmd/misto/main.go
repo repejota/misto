@@ -18,13 +18,9 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"github.com/repejota/misto/cmd"
 )
 
 func main() {
-	log.SetLevel(log.FatalLevel)
-
 	cmd.Execute()
 }
