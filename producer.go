@@ -23,13 +23,16 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+// Metadata ...
+type Metadata struct {
+	id   string
+	name string
+}
+
 // Producer ...
 type Producer struct {
-	metadata struct {
-		id   string
-		name string
-	}
-	reader io.ReadCloser
+	metadata Metadata
+	reader   io.ReadCloser
 }
 
 // NewProducer ...
