@@ -25,34 +25,57 @@ import (
 
 // Hub is the type that handles producers and consumers
 type Hub struct {
-	Producers []*Producer
+	Producers []Producer
 }
 
 // NewHub creates a new empty hub instance with no producers and consumers
 func NewHub() *Hub {
-	log.Info("Creating Hub")
+	log.Info("Creating hub")
+
 	hub := &Hub{
-		Producers: make([]*Producer, 0),
+		Producers: make([]Producer, 0),
 	}
-	log.Info("Hub created")
+
+	log.WithFields(log.Fields{
+		"producers": len(hub.Producers),
+	}).Debug("Hub created")
+
 	return hub
 }
 
-// Run starts the hub event loop
+// Setup initializes hub's producers
+func (h *Hub) Setup() error {
+	log.Info("Setup producers")
+
+	log.WithFields(log.Fields{
+		"producers": len(h.Producers),
+	}).Debug("Hub initialized")
+
+	return nil
+}
+
+// Run starts hub event loop
 func (h *Hub) Run() {
 	log.Info("Starting hub event loop")
+
 	log.Info("Hub event loop started")
 }
 
-// Shutdown shut downs a hub, closing all its producers and consumers
+// Shutdown shut downs a hub, closing all of its producers and consumers
 func (h *Hub) Shutdown(ctx context.Context) {
-	log.Info("Shutting down Hub")
+	log.Info("Shutting down hub")
 
 	for i, producer := range h.Producers {
-		log.Debug("Closing producer")
-		producer.Close()
+		err := producer.Close()
+		if err != nil {
+			log.Error(err)
+		}
+
 		h.Producers = append(h.Producers[:i], h.Producers[i+1:]...)
-		log.Debug("Closed producer")
+
+		log.WithFields(log.Fields{
+			"producers": len(h.Producers),
+		}).Debug("Closed producer")
 	}
 
 	log.Debug("Hub shut down")

@@ -18,16 +18,21 @@
 package misto
 
 // Producer ...
-type Producer struct {
+type Producer interface {
+	Close() error
 }
 
-// NewProducer ...
-func NewProducer() *Producer {
-	p := &Producer{}
+// DummyProducer ...
+type DummyProducer struct {
+}
+
+// NewDummyProducer ...
+func NewDummyProducer() *DummyProducer {
+	p := &DummyProducer{}
 	return p
 }
 
 // Close ...
-func (p *Producer) Close() {
-
+func (p *DummyProducer) Close() error {
+	return nil
 }

@@ -38,8 +38,8 @@ var (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "misto",
-	Short: "Tail docker logs",
-	Long:  `Misto tails logs from a docker daemon`,
+	Short: "Tail aggregated logs",
+	Long:  `Misto tails and aggregates logs`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.FatalLevel)
 
@@ -57,6 +57,10 @@ var RootCmd = &cobra.Command{
 		signal.Notify(shutdown, os.Interrupt)
 
 		hub := misto.NewHub()
+		err := hub.Setup()
+		if err != nil {
+			log.Fatal(err)
+		}
 		hub.Run()
 
 		<-shutdown
@@ -78,6 +82,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	RootCmd.SetUsageFunc(UsageFunc)
 	RootCmd.Flags().BoolVarP(&versionFlag, "version", "V", false, "show version number")
 	RootCmd.Flags().BoolVarP(&verboseFlag, "verbose", "v", false, "enable verbose mode")
 }
@@ -85,4 +90,24 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	// Unimplemented
+}
+
+// UsageFunc prints command usage help message
+func UsageFunc(cmd *cobra.Command) error {
+	fmt.Println("Usage:")
+	fmt.Println("  misto [flags]")
+	fmt.Println()
+	fmt.Println("Flags:")
+	fmt.Println("  -i, --input=INPUT	set an input")
+	fmt.Println("  -o, --output=OUTPUT 	set an output")
+	fmt.Println("  -h, --help		help for misto")
+	fmt.Println("  -v, --verbose   	enable verbose mode")
+	fmt.Println("  -V, --version   	show version number")
+	fmt.Println()
+	fmt.Println("Inputs:")
+	fmt.Println("  dummy    		Generate dummy data")
+	fmt.Println()
+	fmt.Println("Outputs:")
+	fmt.Println("  stdout    		Prints log events to STDOUT")
+	return nil
 }

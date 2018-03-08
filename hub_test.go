@@ -53,7 +53,7 @@ func TestHub(t *testing.T) {
 		t.Fatalf("New Hub expected to have 0 producers but got %d", len(hub.Producers))
 	}
 
-	producer1 := misto.NewProducer()
+	producer1 := misto.NewDummyProducer()
 
 	hub.Producers = append(hub.Producers, producer1)
 
