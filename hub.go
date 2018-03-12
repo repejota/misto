@@ -44,29 +44,14 @@ func NewHub() *Hub {
 	return hub
 }
 
-// Setup initializes hub's producers
-func (h *Hub) Setup() error {
-	log.Info("Setup producers")
-
-	producer1 := NewDummyProducer()
-	h.Producers = append(h.Producers, producer1)
-	log.Debug("Created dummy producer: producer1")
-
-	log.Info("Setup consumers")
-
-	log.WithFields(log.Fields{
-		"producers": len(h.Producers),
-		"consumers": 0,
-	}).Debug("Hub initialized")
-
-	return nil
-}
-
 // Run starts hub event loop
 func (h *Hub) Run() {
 	log.Info("Starting hub event loop")
 
-	log.Info("Hub event loop started")
+	log.WithFields(log.Fields{
+		"producers": len(h.Producers),
+		"consumers": 0,
+	}).Info("Hub event loop started")
 }
 
 // Shutdown shut downs a hub, closing all of its producers and consumers

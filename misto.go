@@ -41,10 +41,14 @@ func NewMisto() *Misto {
 
 // Start runs misto services
 func (m *Misto) Start() error {
-	err := m.hub.Setup()
+
+	producer1, err := NewDummyProducer()
 	if err != nil {
 		return err
 	}
+	m.hub.Producers = append(m.hub.Producers, producer1)
+	log.Debugf("Created dummy producer: %s", producer1.ID)
+
 	log.Info("Starting misto")
 	m.hub.Run()
 	log.Debug("Misto started")
