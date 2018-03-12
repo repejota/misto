@@ -24,19 +24,20 @@ import (
 	"github.com/repejota/misto/uuid"
 )
 
-// Producer ...
+// Producer is an interface that all misto producers musto implement
 type Producer interface {
 	Type() string
 	Close() error
 	fmt.Stringer
 }
 
-// DummyProducer ...
+// DummyProducer is a producer that generates a dummy message for testing and
+// debugging purposes
 type DummyProducer struct {
 	ID string
 }
 
-// NewDummyProducer ...
+// NewDummyProducer creates an instance producer
 func NewDummyProducer() (*DummyProducer, error) {
 	p := &DummyProducer{}
 	uuid, err := uuid.New()
@@ -47,12 +48,12 @@ func NewDummyProducer() (*DummyProducer, error) {
 	return p, nil
 }
 
-// Type ...
+// Type return the type of the producer as string
 func (p *DummyProducer) Type() string {
 	return strings.Split(p.ID, "-")[0]
 }
 
-// Close ...
+// Close closes this proucer
 func (p *DummyProducer) Close() error {
 	return nil
 }
