@@ -15,4 +15,11 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+// Package misto is an open source and multi-platform Log Processor and
+// Forwarder which allows you to collect data/logs from different
+// sources/providers, unify and send them to multiple destinations/consumders.
+//
+// It is designed to run on light and development environments and not on heavy
+// or production envirnomentsto and its main use case is to keep tracking of
+// logs during for example development or debug phase.
 package misto
