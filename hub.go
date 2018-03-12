@@ -20,12 +20,13 @@ package misto
 import (
 	"context"
 
+	"github.com/repejota/misto/producer"
 	log "github.com/sirupsen/logrus"
 )
 
 // Hub is the type that handles producers and consumers
 type Hub struct {
-	Producers []Producer
+	Producers []producer.Producer
 }
 
 // NewHub creates a new empty hub instance with no producers and consumers
@@ -33,7 +34,7 @@ func NewHub() *Hub {
 	log.Info("Creating hub")
 
 	hub := &Hub{
-		Producers: make([]Producer, 0),
+		Producers: make([]producer.Producer, 0),
 	}
 
 	log.WithFields(log.Fields{
@@ -51,25 +52,24 @@ func (h *Hub) Run() {
 	log.WithFields(log.Fields{
 		"producers": len(h.Producers),
 		"consumers": 0,
-	}).Info("Hub event loop started")
+	}).Debug("Hub event loop started")
 }
 
 // Shutdown shut downs a hub, closing all of its producers and consumers
 func (h *Hub) Shutdown(ctx context.Context) {
-	log.Info("Shutting down hub")
+	log.Info("Stopping hub")
 
 	for i, producer := range h.Producers {
 		err := producer.Close()
 		if err != nil {
 			log.Error(err)
 		}
-		log.Debug("Stoped dummy producer: producer1")
+		log.Debugf("Stoped %s producer: %s", producer.Type(), producer)
 		h.Producers = append(h.Producers[:i], h.Producers[i+1:]...)
-
-		log.WithFields(log.Fields{
-			"producers": len(h.Producers),
-		}).Debug("Closed producer")
 	}
 
-	log.Debug("Hub shut down")
+	log.WithFields(log.Fields{
+		"producers": len(h.Producers),
+		"consumers": 0,
+	}).Debug("Hub stopped")
 }

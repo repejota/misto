@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/repejota/misto/producer"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,12 +43,12 @@ func NewMisto() *Misto {
 // Start runs misto services
 func (m *Misto) Start() error {
 
-	producer1, err := NewDummyProducer()
+	producer, err := producer.NewDummyProducer()
 	if err != nil {
 		return err
 	}
-	m.hub.Producers = append(m.hub.Producers, producer1)
-	log.Debugf("Created dummy producer: %s", producer1.ID)
+	m.hub.Producers = append(m.hub.Producers, producer)
+	log.Debugf("Created %s producer: %s", producer.Type(), producer.ID)
 
 	log.Info("Starting misto")
 	m.hub.Run()

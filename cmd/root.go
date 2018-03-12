@@ -43,6 +43,11 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.FatalLevel)
 
+		formatter := &log.TextFormatter{
+			FullTimestamp: true,
+		}
+		log.SetFormatter(formatter)
+
 		// --verbose
 		if verboseFlag {
 			log.SetLevel(log.DebugLevel)
@@ -64,6 +69,7 @@ var RootCmd = &cobra.Command{
 		m.Start()
 
 		<-shutdown
+		fmt.Println()
 		m.Stop()
 
 	},

@@ -15,4 +15,49 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package misto_test
+package producer
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/repejota/misto/uuid"
+)
+
+// Producer ...
+type Producer interface {
+	Type() string
+	Close() error
+	fmt.Stringer
+}
+
+// DummyProducer ...
+type DummyProducer struct {
+	ID string
+}
+
+// NewDummyProducer ...
+func NewDummyProducer() (*DummyProducer, error) {
+	p := &DummyProducer{}
+	uuid, err := uuid.New()
+	if err != nil {
+		return nil, err
+	}
+	p.ID = fmt.Sprintf("dummy-%s", uuid)
+	return p, nil
+}
+
+// Type ...
+func (p *DummyProducer) Type() string {
+	return strings.Split(p.ID, "-")[0]
+}
+
+// Close ...
+func (p *DummyProducer) Close() error {
+	return nil
+}
+
+// String implements Stringer interface
+func (p *DummyProducer) String() string {
+	return p.ID
+}

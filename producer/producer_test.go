@@ -15,32 +15,4 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package misto
-
-import "github.com/repejota/misto/uuid"
-
-// Producer ...
-type Producer interface {
-	Close() error
-}
-
-// DummyProducer ...
-type DummyProducer struct {
-	ID string
-}
-
-// NewDummyProducer ...
-func NewDummyProducer() (*DummyProducer, error) {
-	p := &DummyProducer{}
-	uuid, err := uuid.New()
-	if err != nil {
-		return nil, err
-	}
-	p.ID = uuid
-	return p, nil
-}
-
-// Close ...
-func (p *DummyProducer) Close() error {
-	return nil
-}
+package producer_test
