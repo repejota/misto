@@ -15,17 +15,4 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package producer
-
-import (
-	"fmt"
-	"io"
-)
-
-// Producer is an interface that all misto producers musto implement
-type Producer interface {
-	Type() string
-	Close() error
-	io.Reader
-	fmt.Stringer
-}
+package producer_test

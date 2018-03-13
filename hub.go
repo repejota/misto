@@ -64,8 +64,8 @@ func (h *Hub) Shutdown(ctx context.Context) {
 		if err != nil {
 			log.Error(err)
 		}
-		log.Debugf("Stoped %s producer: %s", producer.Type(), producer)
 		h.Producers = append(h.Producers[:i], h.Producers[i+1:]...)
+		log.Debugf("Stoped %s producer: %s", producer.Type(), producer)
 	}
 
 	log.WithFields(log.Fields{
