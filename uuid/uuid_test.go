@@ -24,10 +24,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	id, err := uuid.New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	id := uuid.New()
 	if id == "" {
 		t.Fatalf("Expected non empty string but got %q", id)
 	}
