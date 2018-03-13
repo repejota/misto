@@ -18,6 +18,7 @@
 package producer_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -38,7 +39,7 @@ func TestDummyProducerID(t *testing.T) {
 	}
 
 	if dummy.ID == "" {
-		t.Fatalf(`New Dummy producer ID expected to not be ""`)
+		t.Fatalf(`New Dummy producer ID not expected to be an empty string`)
 	}
 }
 
@@ -48,11 +49,12 @@ func TestDummyProducerType(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedType := "dummy"
+	expectedType := dummy.Type()
 	gotType := strings.Split(dummy.ID, "-")[0]
 	if expectedType != gotType {
-		t.Fatalf("Expected type was %s but got %s", expectedType, gotType)
+		t.Fatalf("Expected type was %q but got %q", expectedType, gotType)
 	}
+
 }
 
 func TestDummyProducerData(t *testing.T) {
@@ -63,6 +65,44 @@ func TestDummyProducerData(t *testing.T) {
 
 	expectedData := "dummy message"
 	if string(dummy.Data) != expectedData {
-		t.Fatalf("Dummy producer message expected %s but got %s", expectedData, dummy.Data)
+		t.Fatalf("Dummy producer message expected %q but got %q", expectedData, dummy.Data)
+	}
+}
+
+func TestDummyProducerStringer(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedStart := "dummy"
+	stringer := fmt.Sprintf("%s", dummy)
+	start := strings.Split(stringer, "-")[0]
+	if start != expectedStart {
+		t.Fatalf("String repr expected to start with %q but got %q", expectedStart, start)
+	}
+}
+
+func TestDummyProducerRead(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = dummy.Read([]byte("dummy message"))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDummyProducerClose(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = dummy.Close()
+	if err != nil {
+		t.Fatal(err)
 	}
 }

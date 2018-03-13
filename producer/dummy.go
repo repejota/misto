@@ -38,10 +38,7 @@ func NewDummyProducer() (*DummyProducer, error) {
 	dp := &DummyProducer{
 		Data: []byte(dummyMessageData),
 	}
-	uuid, err := uuid.New()
-	if err != nil {
-		return nil, err
-	}
+	uuid := uuid.New()
 	dp.ID = fmt.Sprintf("dummy-%s", uuid)
 	return dp, nil
 }
