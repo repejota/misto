@@ -18,6 +18,7 @@
 package producer_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -75,8 +76,15 @@ func TestDummyProducerStringer(t *testing.T) {
 	}
 
 	expectedStart := "dummy"
-	stringer := dummy.String()
+	stringer := fmt.Sprintf("%s", dummy)
 	start := strings.Split(stringer, "-")[0]
+	if start != expectedStart {
+		t.Fatalf("String repr expected to start with %q but got %q", expectedStart, start)
+	}
+
+	expectedStart = "dummy"
+	stringer = dummy.String()
+	start = strings.Split(stringer, "-")[0]
 	if start != expectedStart {
 		t.Fatalf("String repr expected to start with %q but got %q", expectedStart, start)
 	}
