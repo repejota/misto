@@ -16,3 +16,53 @@
 // under the License.
 
 package producer_test
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/repejota/misto/producer"
+)
+
+func TestNewDummyProducer(t *testing.T) {
+	_, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDummyProducerID(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if dummy.ID == "" {
+		t.Fatalf(`New Dummy producer ID expected to not be ""`)
+	}
+}
+
+func TestDummyProducerType(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedType := "dummy"
+	gotType := strings.Split(dummy.ID, "-")[0]
+	if expectedType != gotType {
+		t.Fatalf("Expected type was %s but got %s", expectedType, gotType)
+	}
+}
+
+func TestDummyProducerData(t *testing.T) {
+	dummy, err := producer.NewDummyProducer()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedData := "dummy message"
+	if string(dummy.Data) != expectedData {
+		t.Fatalf("Dummy producer message expected %s but got %s", expectedData, dummy.Data)
+	}
+}
